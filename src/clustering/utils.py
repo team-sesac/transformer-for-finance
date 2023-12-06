@@ -1,6 +1,7 @@
 import ta
 import FinanceDataReader as fdr
 import pandas as pd
+import os
 
 # 한국거래소 상장종목 전체 조회
 def get_KRX_list():
@@ -14,15 +15,13 @@ def get_KRX_list():
 # 종목을 start_date ~ end_date 기간 데이터
 def get_stock_data(stock_code, stock_name, start_date, end_date):
     stock_df = fdr.DataReader(stock_code, start_date, end_date).reset_index()
-    # stock_df['Name'] = stock_name
     stock_df.insert(0, 'Code', [f'{stock_code}'] * stock_df.shape[0])
-    stock_df.insert(0, 'Name', [f'{stock_name}']*stock_df.shape[0])
+    stock_df.insert(0, 'Name', [f'{stock_name}'] * stock_df.shape[0])
     return stock_df
 
 # 코스피, 코스닥 데이터 + 보조지표. 
 def get_dataset(start_date, end_date):
-    data_list = get_KRX_list()[:50]
-    # data_list = get_KRX_list()
+    data_list = get_KRX_list()
     all_stocks = pd.DataFrame()
     for code, name in zip(data_list['Code'], data_list['Name']):
         stock = get_stock_data(code, name, start_date, end_date)
@@ -33,6 +32,17 @@ def get_dataset(start_date, end_date):
     all_stocks.index.name = None
     return all_stocks
 
+def get_test_dataset(start_date, end_date):
+    data_list = get_KRX_list()[:50]
+    all_stocks = pd.DataFrame()
+    for code, name in zip(data_list['Code'], data_list['Name']):
+        stock = get_stock_data(code, name, start_date, end_date)
+        stock = add_full_ta(stock)
+        all_stocks = pd.concat([all_stocks, stock], ignore_index=True)
+    # 데이터 계층화를 위한 Date를 index로 작업
+    all_stocks.set_index(['Date'], inplace=True)
+    all_stocks.index.name = None
+    return all_stocks
 
 # features = ['지표1', '지표2', '지표3'] # select
 # features = all_stocks.columns.drop(['Name']) # drop
@@ -119,9 +129,11 @@ def add_full_ta(stock_df):
     return stock_df
 
 
-def load_data(filename):
-    df = pd.read_pickle(f'../{filename}.pkl')
-    return df
 
-def save_data(df, filename):
-    df.to_pickle(f'../{filename}.pkl')
+
+if __name__ == "__main__":
+    file = '../../data/test_2016.csv'
+    file_path = os.path.join(os.path.dirname(__file__), file)
+    start_date, end_date = '20231001', '20231206'
+    df = get_test_dataset(start_date, end_date)
+    print(df)
