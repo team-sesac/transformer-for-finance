@@ -15,6 +15,7 @@ def get_KRX_list():
 def get_stock_data(stock_code, stock_name, start_date, end_date):
     stock_df = fdr.DataReader(stock_code, start_date, end_date).reset_index()
     # stock_df['Name'] = stock_name
+    stock_df.insert(0, 'Code', [f'{stock_code}'] * stock_df.shape[0])
     stock_df.insert(0, 'Name', [f'{stock_name}']*stock_df.shape[0])
     return stock_df
 
