@@ -99,7 +99,7 @@ def add_full_ta(stock_df):
     stock_df['EMA'] = ta.trend.ema_indicator(close=C, fillna=True)
     stock_df['WMA'] = ta.trend.wma_indicator(close=C, fillna=True)
     stock_df['MACD'] = ta.trend.macd(close=C, fillna=True)
-    stock_df['ADX'] = ta.trend.adx(high=H, low=L, close=C, fillna=True)
+    # stock_df['ADX'] = ta.trend.adx(high=H, low=L, close=C, fillna=True)
     stock_df['-VI'] = ta.trend.vortex_indicator_neg(
         high=H, low=L, close=C, fillna=True)
     stock_df['+VI'] = ta.trend.vortex_indicator_pos(
