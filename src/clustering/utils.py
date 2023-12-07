@@ -132,8 +132,9 @@ def add_full_ta(stock_df):
 
 
 if __name__ == "__main__":
-    file = '../../data/test_2016.csv'
+    file = '../../data/krx_ta_2016.csv'
     file_path = os.path.join(os.path.dirname(__file__), file)
-    start_date, end_date = '20231001', '20231206'
+    start_date, end_date = '20160101', '20231206'
     df = get_test_dataset(start_date, end_date)
     print(df)
+    # df.to_csv(file_path)
