@@ -178,29 +178,12 @@ def get_mean_and_std(pct):
     data = pd.concat([data, pct.groupby('Name').std()], axis=1)
     return data
 
-def get_recent_and_window_data(data, n_recent_days=None, window_size=None):
-    """
-    Parameters:
-    - data: DataFrame, 입력 데이터
-    - n_recent_days: int, 최근 n일치 데이터를 가져올 경우 사용
-    - window_size: int, 윈도우 크기를 지정하여 데이터를 가져올 경우 사용
-    
-    Returns:
-    - DataFrame, 결과 데이터
-    """
+def get_recent_and_window_data(data, n_recent_days=None):
     result = []
-
     if n_recent_days is not None:
         for group_name, group_data in data.groupby('Name'):
             recent_data = group_data.tail(n_recent_days)
             result.append(recent_data)
-    '''
-    if window_size is not None:
-        for group_name, group_data in data.groupby('Name'):
-            for i in range(0, len(group_data), window_size):
-                window_data = group_data.iloc[i:i + window_size]
-                result.append(window_data)
-    '''
     return pd.concat(result, ignore_index=True)
 
 def standard_scaler(data):
@@ -263,26 +246,15 @@ def unify_cluster_order(df):
 
 # 클러스터 번호가 다른 행 None 변경.
 def filter_unambiguous_clusters(df):
-    # 행 기준으로 중복된 값을 찾고, 중복된 값이 있는 행을 유지
-    # df = df_unified[df_unified.duplicated(keep=False)]
-    # 중복되지 않은 클러스터 번호는 None 처리
     df[~df.duplicated(keep=False)] = None
     return df.values[:,0]
 
-# n개 미만 클러스터 삭제. 이전 버전.
+# n개 미만 클러스터 삭제
 def filter_clusters(df, min_count=3):
     cluster_counts = df['Cluster'].value_counts()
     clusters_to_keep = cluster_counts[cluster_counts>=min_count].index
     df_filtered = df[df['Cluster'].isin(clusters_to_keep)]
     return df_filtered
-
-# min_count 개 미만 클러스터 제거. 개선 버전
-# def filter_clusters_df(df, min_count=3):
-#     df = df.apply(lambda col: col.apply
-#                   (lambda x: x if col.value_counts().get(x, 0)>=min_count else None), axis=0)
-#     return df.dropna().astype('int')
-
-
 
 # main 함수 예시
 def get_cluster_labels_dataset(df):
@@ -303,7 +275,7 @@ def get_cluster_labels_dataset(df):
     cluster_labels = filter_clusters(cluster_labels)
     return cluster_labels
 
-def get_cluster_labels_dataset_by_close(df, n_recent_days_list=[10, 20, 30], window_size=None, n_clusters=5):
+def get_cluster_labels_dataset_by_close(df, n_recent_days_list=[10, 20, 30], n_clusters=5):
     # 전처리
     df = filter_data(df)
     # 종가만 사용
@@ -318,7 +290,7 @@ def get_cluster_labels_dataset_by_close(df, n_recent_days_list=[10, 20, 30], win
     df_lables.set_index(['Name'], inplace=True)
 
     for days in n_recent_days_list:
-        scaled_df = get_recent_and_window_data(data, n_recent_days=days, window_size=window_size)
+        scaled_df = get_recent_and_window_data(data, n_recent_days=days)
         scaled_df = standard_scaler(scaled_df)
         scaled_df_labels = cosine_kmeans_clustering(data=scaled_df, n_clusters=n_clusters)
         df_lables.insert(0, f'cluster_{days}', scaled_df_labels)
