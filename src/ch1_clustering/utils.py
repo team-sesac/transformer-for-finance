@@ -19,6 +19,10 @@ plt.rcParams["font.family"] = 'AppleGothic'
 plt.rcParams["figure.figsize"] = (14,4)
 plt.rcParams['lines.linewidth'] = 2
 plt.rcParams["axes.grid"] = True
+plt.rcParams['axes.unicode_minus'] = False
+
+import warnings
+warnings.filterwarnings(action='ignore')
 
 # 한국거래소 상장종목 전체 조회
 def get_KRX_list():
@@ -190,6 +194,8 @@ def standard_scaler(data):
     # scaler
     scaler = StandardScaler()#.fit(data)
     scaled_df = pd.DataFrame(scaler.fit_transform(data), columns=data.columns, index=data.index)
+    # scaled_df = scaled_df.dropna()
+    scaled_df = scaled_df.fillna(0)
     return scaled_df
 
 # 코사인 유사도 + K-Means 클러스터링
@@ -197,16 +203,16 @@ def cosine_kmeans_clustering(data, n_clusters):
     similarity_matrix = cosine_similarity(data)
     kmeans = KMeans(n_clusters=n_clusters, random_state=42) # random_state : cluster 번호가 변하여 고정
     labels = kmeans.fit_predict(similarity_matrix)
-    return labels
+    return labels, pd.DataFrame()
 
 # PCA + K-Means 클러스터링
 def pca_kmeans_clustering(data, n_clusters):
     pca = PCA(n_components=2)
-    reduced_data = pca.fit_transform(data)
+    reduced_data = pd.DataFrame(pca.fit_transform(data))
 
     kmeans = KMeans(n_clusters=n_clusters, random_state=42) # random_state : cluster 번호가 변하여 고정
     labels = kmeans.fit_predict(reduced_data)
-    return labels
+    return labels, reduced_data
 
 # DTW 거리 계산 함수. 미완
 def dtw_distance(series1, series2):
@@ -225,14 +231,24 @@ def dtw_kmeans_clustering(data, n_clusters):
 # 클러스터링 결과 시각화. 개선 필요
 def visualize_clusters(data, labels):
     # plt.scatter(data[:, 0], data[:, 1], c=labels, cmap='viridis') # data: numpy
-    plt.scatter(data.values[:, 0], data.values[:, 1], c=labels, cmap='viridis') # data: pandas
+    plt.scatter(data.values[:, 0], data.values[:, 1], c=labels, cmap='viridis') # data: pd.DataFrame
     plt.title('Cluster Visualization')
     plt.xlabel('Principal Component 1')
     plt.ylabel('Principal Component 2')
+    # 100개 미만일 경우 회사명 명시
+    if data.shape[0] < 100000:
+        for x, y, name in zip(data.values[:, 0], data.values[:, 1], data.index):
+            label = name
+            plt.annotate(label, # this is the text
+                        (x,y), # this is the point to label
+                        textcoords="offset points", # how to position the text
+                        xytext=(0,10), # distance from text to points (x,y)
+                        ha='center', # horizontal alignment can be left, right or center
+                        alpha=0.5) 
     plt.show()
 
 # MultiIndex에서 회사별로 클러스터 라벨 추가
-def add_cluster_labels(df, labels):# -> Any:
+def add_cluster_labels(df, labels):
     df['Cluster'] = labels
     return df
 
@@ -245,7 +261,7 @@ def unify_cluster_order(df):
     return df
 
 # 클러스터 번호가 다른 행 None 변경.
-def filter_unambiguous_clusters(df):
+def filter_ambiguous_clusters(df):
     df[~df.duplicated(keep=False)] = None
     return df.values[:,0]
 
@@ -297,7 +313,7 @@ def get_cluster_labels_dataset_by_close(df, n_recent_days_list=[10, 20, 30], n_c
 
     # 클러스터 번호 통일 및 정리
     df_lables = unify_cluster_order(df_lables)
-    df_lables = filter_unambiguous_clusters(df_lables)
+    df_lables = filter_ambiguous_clusters(df_lables)
 
     # 데이서셋에 클러스터 번호 추가
     scaled_df = add_cluster_labels(scaled_df, df_lables)
