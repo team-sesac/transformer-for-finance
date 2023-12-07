@@ -1,17 +1,15 @@
-import ta
-import FinanceDataReader as fdr
-import pandas as pd
 import os
+import ta
 import FinanceDataReader as fdr
 import pandas as pd
 import numpy as np
-import ta
 from sklearn.preprocessing import StandardScaler
 from sklearn.metrics.pairwise import cosine_similarity
 from sklearn.cluster import KMeans
 from sklearn.decomposition import PCA
-from sklearn.cluster import DBSCAN
 import matplotlib.pyplot as plt
+from scipy.spatial.distance import euclidean
+from fastdtw import fastdtw
 
 
 #  차트 설정
@@ -39,8 +37,8 @@ def get_stock_data(stock_code, stock_name, start_date, end_date):
     return stock_df
 
 # 코스피, 코스닥 데이터 + 보조지표. 
-def get_dataset(start_date, end_date):
-    data_list = get_KRX_list()
+def get_dataset(data_list, start_date, end_date):
+    # data_list = get_KRX_list()
     all_stocks = pd.DataFrame()
     for code, name in zip(data_list['Code'], data_list['Name']):
         stock = get_stock_data(code, name, start_date, end_date)
@@ -149,24 +147,26 @@ def add_full_ta(stock_df):
     return stock_df
 
 # 각 회사의 전체 주식 거래 기간의 30% 이상이 Volume이 0인 경우 해당 회사 데이터 삭제
-def filter_zero_volume_data(df):
+def _filter_zero_volume_data(df):
     volume_zero_percentage = df.groupby('Name')['Volume'].apply(lambda x: (x == 0).mean())
     companies_to_remove = volume_zero_percentage[volume_zero_percentage > 0.3].index
     # 조건에 맞는 회사 데이터 삭제
     df_filtered = df[~df['Name'].isin(companies_to_remove)]
     return df_filtered
 
-def standard_scaler(df):
+def filter_data(df):
     # 전처리
-    df = filter_zero_volume_data(df)
+    df = _filter_zero_volume_data(df)
     feature_columns = df.columns.difference(['Code']) # Code 열 제거
     df = df[feature_columns] 
     
     # 결측치 처리
     df = df.replace({0: 0.000001, None: 0.000001}) 
-    df = df.dropna(axis=0) # 이동평균선 NaN 행 제거
+    df = df.dropna(axis=0) # 이동평균선 등 NaN 행 제거
     # df = df.fillna(0.000001)
-
+    return df
+    
+def standard_scaler(df):
     # 변동성을 퍼센트로 변경
     pct = df.groupby('Name').pct_change()
     pct['Name'] = df['Name']
@@ -176,9 +176,26 @@ def standard_scaler(df):
     data = pd.concat([data, pct.groupby('Name').std()], axis=1)
 
     # scaler
-    scaler = StandardScaler().fit(data)
+    scaler = StandardScaler()#.fit(data)
     rescaled_dataset = pd.DataFrame(scaler.fit_transform(data), columns=data.columns, index=data.index)
     return rescaled_dataset
+
+def grouped_data_standard_scaler(df):
+    # 날짜 컬럼을 Datetime 형식으로 변환
+    df.index = pd.to_datetime(df.index)
+    
+    # pct_change 계산
+    pct = df.groupby('Name').pct_change()
+    pct['Name'] = df['Name']
+    
+    # 필요한 날짜 기준으로 groupby하여 평균과 표준편차 계산
+    grouped_data = pd.DataFrame()
+
+    for days in [10, 20, 30, 180]:
+        grouped_data[f'mean_{days}d'] = pct.groupby('Name').rolling(window=days).mean().reset_index(drop=True)
+        grouped_data[f'std_{days}d'] = pct.groupby('Name').rolling(window=days).std().reset_index(drop=True)
+
+    return grouped_data
 
 # 코사인 유사도 + K-Means 클러스터링
 def cosine_kmeans_clustering(data, n_clusters):
@@ -189,19 +206,31 @@ def cosine_kmeans_clustering(data, n_clusters):
 
 # PCA + K-Means 클러스터링
 def pca_kmeans_clustering(data, n_clusters):
-    scaler = StandardScaler()
-    scaled_data = scaler.fit_transform(data)
-    
     pca = PCA(n_components=2)
-    reduced_data = pca.fit_transform(scaled_data)
-    
+    reduced_data = pca.fit_transform(data)
+
     kmeans = KMeans(n_clusters=n_clusters, random_state=42) # random_state : cluster 번호가 변하여 고정
     labels = kmeans.fit_predict(reduced_data)
     return labels
 
+# DTW 거리 계산 함수. 미완
+def dtw_distance(series1, series2):
+    distance, path = fastdtw(series1, series2, dist=euclidean)
+    return distance
+def dtw_kmeans_clustering(data, n_clusters):
+    # DTW 거리 행렬 생성
+    dtw_matrix = pd.DataFrame(index=data.index, columns=data.index)
+    for i in range(len(data.index)):
+        for j in range(len(data.index)):
+            dtw_matrix.at[i, j] = dtw_distance(data.values[i], data.values[j])
+    kmeans = KMeans(n_clusters=n_clusters, random_state=42)
+    labels = kmeans.fit_predict(dtw_matrix)
+    return labels
+
 # 클러스터링 결과 시각화. 개선 필요
-def visualize_clusters(data):
-    plt.scatter(data.values[:, 0], data.values[:, 1], c=data.values[:, 2], cmap='viridis')
+def visualize_clusters(data, labels):
+    # plt.scatter(data[:, 0], data[:, 1], c=labels, cmap='viridis') # data: numpy
+    plt.scatter(data.values[:, 0], data.values[:, 1], c=labels, cmap='viridis', label=data.index) # data: pandas
     plt.title('Cluster Visualization')
     plt.xlabel('Principal Component 1')
     plt.ylabel('Principal Component 2')
@@ -213,11 +242,11 @@ def add_cluster_labels(df, labels):
     return df
 
 # n개 미만 클러스터 삭제. 이전 버전.
-# def filter_clusters(df, n=3):
-#     cluster_counts = df['Cluster'].value_counts()
-#     clusters_to_keep = cluster_counts[cluster_counts >= n].index
-#     df_filtered = df[df['Cluster'].isin(clusters_to_keep)]
-#     return df_filtered
+def filter_clusters(df, n=3):
+    cluster_counts = df['Cluster'].value_counts()
+    clusters_to_keep = cluster_counts[cluster_counts >= n].index
+    df_filtered = df[df['Cluster'].isin(clusters_to_keep)]
+    return df_filtered
 
 # min_count 개 미만 클러스터 제거. 개선 버전
 def filter_clusters_with_min_count(cluster_labels, min_count=3):
@@ -228,7 +257,8 @@ def filter_clusters_with_min_count(cluster_labels, min_count=3):
     return cluster_labels
 
 # main 함수 예시
-def make_cluster_labels_by_dataset(df):
+def make_cluster_labels_dataset(df):
+    df = filter_data(df)
     rescaled_dataset = standard_scaler(df)
     pca_labels = pca_kmeans_clustering(rescaled_dataset,5)
     cosine_labels = cosine_kmeans_clustering(rescaled_dataset,5)
@@ -240,15 +270,54 @@ cluster_labels['cosine'] = cosine_label
     cluster_labels = filter_clusters_with_min_count(cluster_labels)
     return cluster_labels
 
+# main 함수 예시. 종가만 사용
+def make_cluster_labels_dataset_by_close(df):
+    df = filter_data(df)
+    df = df[['Name', 'Close']]
+    rescaled_dataset = standard_scaler(df)
+    # pca_labels = pca_kmeans_clustering(rescaled_dataset,5)
+    cosine_labels = cosine_kmeans_clustering(rescaled_dataset,5)
+
+    # cluster_labels = pd.DataFrame()
+    # cluster_labels.index = rescaled_dataset.index
+    # cluster_labels['pca'] = pca_labels
+    # cluster_labels['cosine'] = cosine_labels
+    # 소수 클러스터 삭제
+    # cluster_labels = filter_clusters_with_min_count(cluster_labels)
+
+    # 종가만 사용할 경우 시각화 작업
+    # pca_cluster = add_cluster_labels(rescaled_dataset, pca_labels)
+    cosine_cluster = add_cluster_labels(rescaled_dataset, cosine_labels)
+    # 소수 클러스터 삭제
+    # pca_cluster = filter_clusters(pca_cluster)
+    cosine_cluster = filter_clusters(cosine_cluster)
+    
+    # visualize cluster
+    # visualize_clusters(pca_cluster, pca_cluster['Cluster'])
+    # visualize_clusters(cosine_cluster, cosine_cluster['Cluster'])
+    
+    return cosine_cluster
+
+def make_cluster_labels_dataset_by_grouped_daata(df):
+    df = filter_data(df)
+    df = df[['Name', 'Close']]
+    rescaled_dataset = grouped_data_standard_scaler(df)
+    print(rescaled_dataset)
+    cosine_labels = cosine_kmeans_clustering(rescaled_dataset,5)
+
+    return cosine_labels
+
+
 
 if __name__ == "__main__":
-    file = '../../data/krx_ta_2016.csv'
+    # file = '../../data/krx_ta_2016.csv'
+    file = '../../data/krx_2016.csv'
     file_path = os.path.join(os.path.dirname(__file__), file)
     df = pd.read_csv(file_path, index_col=0)
     # start_date, end_date = '20160101', '20231206'
     # df = get_test_dataset(start_date, end_date)
     # df = get_dataset(start_date, end_date)
 
-    cluster_labels = make_cluster_labels_by_dataset(df)
+    cluster_labels = make_cluster_labels_dataset_by_grouped_daata(df)
     print(cluster_labels)
     # df.to_csv(file_path)
