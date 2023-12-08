@@ -74,8 +74,8 @@ if __name__ == "__main__":
     full_file = '../krx_full_list_2016.csv'
     file = '../../data/krx_2016.csv'
     file_path = os.path.join(os.path.dirname(__file__), file)
+    # df = pd.read_csv(file_path, index_col=0)
     df = pd.read_csv(file_path, index_col=0)
-    # df = pd.read_csv(full_file, index_col=0)
     
     
     full_features = ['Name', 'Open', 'High', 'Low', 'Close', 'Volume', 'Change']
@@ -83,7 +83,7 @@ if __name__ == "__main__":
     # cluster = Cluster(df, features=full_features)
     # cluster = Cluster(df, features=features)
     cluster = Cluster(df)
-    cluster_labels = cluster(method='pca', n_recent_days_list=[10, 20, 30], n_clusters=10)
+    # cluster_labels = cluster(method='pca', n_recent_days_list=[10, 20, 30], n_clusters=10)
     cluster_labels = cluster(method='cosine', n_recent_days_list=[10, 20, 30], n_clusters=10)
     # cluster_labels = cluster(method='pca', n_recent_days_list=None, n_clusters=10)
     # cluster_labels = cluster(method='cosine', n_recent_days_list=[10, 20, 30], n_clusters=5)

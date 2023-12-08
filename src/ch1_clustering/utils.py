@@ -15,7 +15,7 @@ from fastdtw import fastdtw
 #  차트 설정
 import matplotlib.pyplot as plt
 plt.rcParams["font.family"] = 'Malgun Gothic'
-plt.rcParams["font.family"] = 'AppleGothic'
+# plt.rcParams["font.family"] = 'AppleGothic'
 plt.rcParams["figure.figsize"] = (14,4)
 plt.rcParams['lines.linewidth'] = 2
 plt.rcParams["axes.grid"] = True
@@ -55,11 +55,11 @@ def get_dataset(data_list, start_date, end_date):
 
 # 테스트용 50개 회사만 조회
 def get_test_dataset(start_date, end_date):
-    data_list = get_KRX_list()[:50]
+    data_list = get_KRX_list()#[:50]
     all_stocks = pd.DataFrame()
     for code, name in zip(data_list['Code'], data_list['Name']):
         stock = get_stock_data(code, name, start_date, end_date)
-        stock = add_full_ta(stock)
+        # stock = add_full_ta(stock)
         all_stocks = pd.concat([all_stocks, stock], ignore_index=True)
     # 데이터 계층화를 위한 Date를 index로 작업
     all_stocks.set_index(['Date'], inplace=True)
@@ -99,8 +99,8 @@ def add_full_ta(stock_df):
         high=H, low=L, close=C, volume=V, fillna=True)
 
     # Volatility
-    stock_df['ATR'] = ta.volatility.average_true_range(
-        high=H, low=L, close=C, fillna=True)
+    #stock_df['ATR'] = ta.volatility.average_true_range(
+    #    high=H, low=L, close=C, fillna=True)
     stock_df['BHB'] = ta.volatility.bollinger_hband(close=C, fillna=True)
     stock_df['BLB'] = ta.volatility.bollinger_lband(close=C, fillna=True)
     stock_df['KCH'] = ta.volatility.keltner_channel_hband(
