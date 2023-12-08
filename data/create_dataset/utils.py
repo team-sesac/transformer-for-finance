@@ -113,9 +113,37 @@ def add_full_ta(stock_df):
     return stock_df
 
 
+# for transformers
+def get_single_ticker(symbol, start_date, end_date):
+    df = fdr.DataReader(symbol, start_date, end_date)
+    df['pct_change'] = df['Close'].pct_change() * 100
+    return df
+
+
+def cat_ta(df, to_include=None):
+    df = ta.add_all_ta_features(df,
+                                open="Open",
+                                high="High",
+                                low="Low",
+                                close="Close",
+                                volume="Volume",
+                                fillna=True)
+
+    if to_include is not None:
+        df = df[to_include]
+
+    return df
+
+
+# file managers
+
 def load_data(filename):
     df = pd.read_pickle(f'../{filename}.pkl')
     return df
 
 def save_data(df, filename):
     df.to_pickle(f'../{filename}.pkl')
+
+
+def export_csv(df, filepath):
+    df.to_csv(filepath)
