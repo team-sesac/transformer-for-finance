@@ -266,7 +266,7 @@ def make_cluster_labels_dataset(df):
     cluster_labels = pd.DataFrame()
     cluster_labels.index = rescaled_dataset.index
     cluster_labels['pca'] = pca_labels
-cluster_labels['cosine'] = cosine_label
+    cluster_labels['cosine'] = cosine_label
     cluster_labels = filter_clusters_with_min_count(cluster_labels)
     return cluster_labels
 
