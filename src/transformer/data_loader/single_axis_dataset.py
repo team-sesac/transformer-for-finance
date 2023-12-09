@@ -13,12 +13,12 @@ class TimeSeriesDataset(Dataset):
         return len(self.data) - self.config.seq_len - self.config.predict_day
 
     def __getitem__(self, idx):
-        x = torch.tensor(self.data[idx:idx+self.config.seq_len])
-        y_row = self.data[idx + self.config.seq_len + self.config.predict_day]
+        x = torch.tensor(self.data[idx:idx+self.config.seq_len], dtype=torch.float64)
+        y_row = self.data[idx + self.config.seq_len]
         # y = np.array([y_row[i:i + self.config.len_feature_columns][self.config.label_columns]
         #                    for i in range(0, len(y_row), self.config.len_feature_columns)]).flatten()
         y = torch.tensor([y_row[i:i + self.config.len_feature_columns][self.config.label_columns]
-                          for i in range(0, len(y_row), self.config.len_feature_columns)]).flatten()
+                          for i in range(0, len(y_row), self.config.len_feature_columns)], dtype=torch.float64).flatten()
         return x, y
 
 

@@ -34,7 +34,7 @@ class DoubleAxisDataProcessor:
         if use_cols is None:
             use_cols = ['Open', 'High', 'Low', 'Close', 'Volume']
 
-        return np.concatenate([pd.read_csv(file_path, use_cols=use_cols).to_numpy() for file_path in file_paths], axis=1)
+        return np.concatenate([pd.read_csv(file_path, usecols=use_cols).to_numpy() for file_path in file_paths], axis=1)
 
     @staticmethod
     def load_df(filepath):
