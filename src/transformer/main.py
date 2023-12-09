@@ -1,3 +1,5 @@
+import torch
+
 from src.transformer.data_loader.double_axis_dataset import DoubleAxisDataProcessor
 from src.transformer.data_loader.single_axis_dataset import TimeSeriesDataset
 from src.transformer.model.CrossAttn import CrossAttnModel, CrossAttnModel2

@@ -1,6 +1,7 @@
 import pandas as pd
 import numpy as np
 import torch
+from sklearn.preprocessing import MinMaxScaler
 from torch.utils.data import Dataset, DataLoader
 
 # 2차원 데이터(가로: 피처, 세로: 날짜) 시계열 데이터셋
@@ -15,6 +16,10 @@ class DoubleAxisDataProcessor:
         self.config.file_paths = [config.base_dir + i for i in config.file_paths]
 
         self.dfs = self.import_and_list_dataframes(self.config.file_paths, self.config.use_cols)
+        self.dfs[np.isnan(self.dfs)] = 0
+
+        # 각 열에 대해 Min-Max 스케일링 수행
+        self.dfs = MinMaxScaler().fit_transform(self.dfs)
 
     def get_np_data(self):
         return self.dfs

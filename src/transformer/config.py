@@ -1,4 +1,12 @@
+import torch
+
+
+def get_device(): return torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+
+
 class Config:
+    device = get_device()
+
     # data
     base_dir = '../../data/tf_dataset/'
     file_paths = ['20_SK이노베이션_2010.csv',
@@ -35,7 +43,7 @@ class Config:
 
     batch_size = 8
     learning_rate = 0.00001
-    epoch = 300
+    epochs = 300
     random_seed = 42
 
     do_continue_train = False    # 每次训练把上一次的final_state作为下一次的init_state，仅用于RNN类型模型，目前仅支持pytorch
