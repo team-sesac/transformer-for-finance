@@ -1,6 +1,10 @@
-import pandas as pd
+from src.transformer.data_loader.double_axis_dataset import DoubleAxisDataProcessor
+from src.transformer.data_loader.single_axis_dataset import TimeSeriesDataset
+from src.transformer.model.CrossAttn import CrossAttnModel
+from src.transformer.train.train_stock import train
+from torch.utils.data import DataLoader
 
-from src.transformer.double_axis_dataset import DoubleAxisDataProcessor
+from config import Config
 
 #
 # # 예시 데이터 프레임 생성 (실제 데이터에 맞게 수정해야 함)
@@ -42,18 +46,42 @@ from src.transformer.double_axis_dataset import DoubleAxisDataProcessor
 # # 결과 확인
 # print(merged_df)
 
-if __name__ == '__main__':
-    base_dir = '../../data/tf_dataset/'
-    file_paths = ['0_삼성전자_2010.csv',
-                  '1_LG에너지솔루션_2010.csv',
-                  '2_SK하이닉스_2010.csv',
-                  '3_삼성바이오로직스_2010.csv']
-    file_paths = [base_dir+i for i in file_paths]
+def test():
+    import numpy as np
 
-    usecols = ['Date', 'Open', 'High', 'Low', 'Close', 'Volume',
-               'Change', 'pct_change', 'volume_adi', 'volume_obv', 'volume_cmf']
+    # 주어진 정보
+    y_row = np.array([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12])
+    len_feature_columns = 4
+    label_columns = [0, 2]
 
-    data_processor = DoubleAxisDataProcessor(file_paths=file_paths, usecols=usecols)
-    merged_df = data_processor.outer_join_df()
+    # 한 줄 for문으로 처리
+    # result = np.array([y_row[i:i + len_feature_columns][label_columns] for i in range(0, len(y_row), len_feature_columns)])
+    result = np.array([y_row[i:i + len_feature_columns][label_columns] for i in range(0, len(y_row), len_feature_columns)]).flatten()
+
+    # 결과 출력
+    print(result)
+
+def main():
+    config = Config()
+
+    data_processor = DoubleAxisDataProcessor(config)
+    np_stock_data = data_processor.get_np_data()
+    dataset = TimeSeriesDataset(config, np_stock_data)
+    train_loader = DataLoader(dataset=dataset, batch_size=config.batch_size, shuffle=True, drop_last=True)
+
+
+    model = CrossAttnModel(config.input_size, config.output_size, config.seq_len)
+
+    train(config, model, train_loader)
+
+
+
+
+
     print('here')
+
+
+if __name__ == '__main__':
+    test()
+    main()
 

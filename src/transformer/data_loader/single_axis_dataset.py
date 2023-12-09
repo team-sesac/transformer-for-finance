@@ -5,16 +5,20 @@ from torch.utils.data import Dataset, DataLoader
 
 
 class TimeSeriesDataset(Dataset):
-    def __init__(self, data, window_size):
+    def __init__(self, config, data):
+        self.config = config
         self.data = data
-        self.window_size = window_size
 
     def __len__(self):
-        return len(self.data) - self.window_size
+        return len(self.data) - self.config.seq_len - self.config.predict_day
 
     def __getitem__(self, idx):
-        x = torch.tensor(self.data[idx:idx+self.window_size])
-        y = torch.tensor(self.data[idx+self.window_size])
+        x = torch.tensor(self.data[idx:idx+self.config.seq_len])
+        y_row = self.data[idx + self.config.seq_len + self.config.predict_day]
+        # y = np.array([y_row[i:i + self.config.len_feature_columns][self.config.label_columns]
+        #                    for i in range(0, len(y_row), self.config.len_feature_columns)]).flatten()
+        y = torch.tensor([y_row[i:i + self.config.len_feature_columns][self.config.label_columns]
+                          for i in range(0, len(y_row), self.config.len_feature_columns)]).flatten()
         return x, y
 
 
@@ -45,7 +49,7 @@ class TransformerDataset(Dataset):
 
 
 if __name__ == '__main__':
-    filepath = '../../data/tf_dataset/186_SK케미칼_2010.csv'
+    filepath = '../../../data/tf_dataset/186_SK케미칼_2010.csv'
     cols = ['Close']
     test_size = 0.3
     trans_dataset = TransformerDataset(filepath, cols, test_size)
