@@ -10,14 +10,15 @@ def create_directory_if_not_exists(directory):
         os.makedirs(directory)
 
 
-def save_stock_model(config, epoch, model, optimizer, losses):
-    curr_time = datetime.now().strftime("%y%m%d%H%M%S")
+def save_stock_model(config, epoch, model, optimizer, train_losses, test_losses):
+    curr_time = datetime.now().strftime("%y%m%d%H%M")
     save_path = f'{config.model_base_dir}model_state_dict_epoch_{epoch + 1}_{curr_time}.pt'
     torch.save({
         'epoch': epoch,
         'model_state_dict': model.state_dict(),
         'optimizer_state_dict': optimizer.state_dict(),
-        'loss': losses
+        'train_losses': train_losses,
+        'test_losses': test_losses
     }, save_path)
     print(f"saved model: {save_path}")
 
@@ -35,9 +36,10 @@ def load_stock_model(load_path, model, config):
 
     # 추가적인 정보 (예를 들어 손실) 불러오기
     curr_epoch = checkpoint['epoch']
-    curr_losses = checkpoint['loss']
+    curr_train_losses = checkpoint['train_losses']
+    curr_test_losses = checkpoint['test_losses']
 
-    return model, optimizer, curr_epoch, curr_losses
+    return model, optimizer, curr_epoch, curr_train_losses, curr_test_losses
 
 
 def vis_losses_accs(train_losses, test_losses, config):

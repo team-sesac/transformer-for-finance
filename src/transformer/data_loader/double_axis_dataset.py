@@ -12,14 +12,24 @@ class DoubleAxisDataProcessor:
         self.config = config
         self.config.file_paths = [config.base_dir + i for i in config.file_paths]
 
-        self.dfs = self.import_and_list_dataframes(self.config.file_paths, self.config.use_cols)
-        self.dfs[np.isnan(self.dfs)] = 0
+        self.np_raw = self.import_and_list_dataframes(self.config.file_paths, self.config.use_cols)
+        self.np_raw[np.isnan(self.np_raw)] = 0
 
-        # 각 열에 대해 Min-Max 스케일링 수행
-        self.dfs = MinMaxScaler().fit_transform(self.dfs)
+        self.dfs = self.np_raw
+
+        # 피처와, 타겟에 대해 Min-Max 스케일링 수행
+        self.x_scaler = MinMaxScaler()
+        self.dfs[:, config.cols_to_scale] = self.x_scaler.fit_transform(self.dfs[:, config.cols_to_scale])
+        self.y_scaler = MinMaxScaler()
+        self.dfs[:, config.label_columns] = self.y_scaler.fit_transform(self.dfs[:, config.label_columns])
+
+        # self.dfs = self.scaler.fit_transform(self.np_raw)
 
     def get_np_data(self):
         return self.dfs
+
+    def get_scalers(self):
+        return self.x_scaler, self.y_scaler
 
     def split_train_test(self, test_size=0.3):
         data = self.get_np_data()
@@ -38,7 +48,7 @@ class DoubleAxisDataProcessor:
         - use_cols (list): 주가 데이터에 사용할 feature 리스트
 
         Returns:
-        - list: 각 데이터프레임이 담긴 리스트
+        - ndarray: 각 데이터프레임이 담긴 리스트
         """
         if use_cols is None:
             use_cols = ['Open', 'High', 'Low', 'Close', 'Volume']
@@ -49,19 +59,6 @@ class DoubleAxisDataProcessor:
     def load_df(filepath):
         return pd.read_csv(filepath, index_col=0)
 
-    def outer_join_df(self):
-        # 데이터프레임 리스트 생성
-        # dfs = [df1, df2, df3]  # 나머지 7개 데이터프레임도 추가해야 함
 
-        # 초기 데이터프레임을 첫 번째 데이터프레임으로 설정
-        merged_df = self.dfs[0]
-
-        # 나머지 데이터프레임과 순서대로 'axis' 열을 기준으로 병합
-        for df in self.dfs[1:]:
-            merged_df = pd.merge(merged_df, df, on='Date', how='outer')
-
-        # 'axis' 열을 기준으로 오름차순 정렬
-        merged_df = merged_df.sort_values(by='axis')
-        return merged_df
 
 

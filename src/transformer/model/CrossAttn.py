@@ -118,18 +118,18 @@ class CrossAttentionTransformer(nn.Module):
 
         # https://github.com/lucidrains/performer-pytorch
         self.performer_ticker = Performer(
-            dim=config.seq_len,
-            depth=4,
-            heads=int(config.n_files/2),
-            dim_head=4,
-            causal=False
+            dim=config.seq_len, # 트랜스포머의 입력 임베딩 및 출력 차원입니다. 이는 시퀀스의 길이 또는 특성의 차원을 나타냅니다.
+            depth=4,            # 트랜스포머의 레이어 수입니다. 이는 트랜스포머가 몇 개의 층으로 구성되어 있는지를 나타냅니다.
+            heads=2,            # 멀티 헤드 어텐션에서 사용되는 어텐션 헤드의 개수입니다. 멀티 헤드 어텐션은 모델이 여러 관점에서 정보를 취합할 수 있도록 합니다.
+            dim_head=config.seq_len // 2,        # 각 어텐션 헤드의 차원입니다. 어텐션 헤드는 입력 특성을 서로 다른 부분 공간으로 매핑하여 모델이 다양한 특징을 학습할 수 있게 합니다.
+            causal=False        # 캐주얼 어텐션 여부를 나타냅니다. 캐주얼 어텐션은 각 위치에서 이전 위치만 참조하도록 하는데, 이것은 주로 시퀀스 데이터에서 다음 값을 예측하는 데 사용됩니다.
         ).to(config.device)
 
         self.performer_time = Performer(
             dim=config.n_files,
             depth=4,
-            heads=int(config.n_files/2),
-            dim_head=4,
+            heads=2,
+            dim_head=config.n_files // 2,
             causal=False
         ).to(config.device)
 

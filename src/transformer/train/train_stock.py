@@ -20,7 +20,7 @@ def train(dataloader, model, criterion, optimizer, device):
         optimizer.zero_grad()
         loss.backward()
         optimizer.step()
-        pbar.set_description("%f" % (loss.item()))
+        pbar.set_description(f"{loss.item():.4f} {pred[-1, 0].detach().cpu():3.3f} {y[-1, 0].detach().cpu():3.3f}" % ())
         epoch_loss += loss.item()
 
     epoch_loss /= len(dataloader)
