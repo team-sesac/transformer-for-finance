@@ -86,12 +86,15 @@ class CrossAttnModel(nn.Module):
         return x2
 
 
+######################################################################
+
 class PositionalEmbedding(nn.Module):
     def __init__(self, max_len, d_model):
         super(PositionalEmbedding, self).__init__()
         self.encoding = torch.zeros(max_len, d_model).cuda()  # CUDA로 이동
         position = torch.arange(0, max_len).unsqueeze(1).float().cuda()  # CUDA로 이동
         div_term = torch.exp(torch.arange(0, d_model, 2).float() * -(torch.log(torch.tensor(10000.0)) / d_model)).cuda()  # CUDA로 이동
+
         self.encoding[:, 0::2] = torch.sin(position * div_term)
         self.encoding[:, 1::2] = torch.cos(position * div_term)
         self.encoding = self.encoding.unsqueeze(0)
@@ -100,7 +103,9 @@ class PositionalEmbedding(nn.Module):
         return x + self.encoding[:, :x.size(1)].detach()
 
 
-######################################################################
+'''
+메인 모델 v1
+'''
 
 class CrossAttnModel2(nn.Module):
     def __init__(self, config):
@@ -109,7 +114,7 @@ class CrossAttnModel2(nn.Module):
 
         # 리니어 레이어를 담을 리스트
         # self.linear_layers = nn.ModuleList([nn.Linear(4, 1) for _ in range(10)])
-        self.linear_layers = nn.ModuleList([nn.Linear(in_features=config.len_feature_columns, out_features=config.n_labels, dtype=torch.float32) for _ in range(config.n_files)])
+        self.linear_layers = nn.ModuleList([nn.Linear(in_features=config.len_feature_columns, out_features=config.n_labels, dtype=torch.float32).to(config.device) for _ in range(config.n_files)])
 
         # BERT 레이어
         # self.bert = nn.Linear(10, 3)  # 입력 10, 출력 3

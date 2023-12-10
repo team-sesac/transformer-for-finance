@@ -40,10 +40,15 @@ class Config:
     seq_len = 10
     heads = 8
 
-
     batch_size = 8
     learning_rate = 0.00001
-    epochs = 300
+    epochs = 5 # 300
     random_seed = 42
+
+    # model save
+    model_base_dir = '../../data/model/'
+    save_every = 3 # 50
+
+
 
     do_continue_train = False    # 每次训练把上一次的final_state作为下一次的init_state，仅用于RNN类型模型，目前仅支持pytorch
