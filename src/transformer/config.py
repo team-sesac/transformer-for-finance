@@ -42,12 +42,16 @@ class Config:
 
     batch_size = 8
     learning_rate = 0.00001
-    epochs = 5 # 300
+    epochs = 300 # 300
     random_seed = 42
 
-    # model save
+    # to save model
     model_base_dir = '../../data/model/'
-    save_every = 3 # 50
+    save_every = 50 # 50
+
+    # to save visualization figures
+    vis_base_dir = '../../data/visual/'
+
 
 
 

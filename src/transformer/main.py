@@ -1,12 +1,12 @@
 from src.transformer.data_loader.double_axis_dataset import DoubleAxisDataProcessor
 from src.transformer.data_loader.single_axis_dataset import TimeSeriesDataset
-from src.transformer.model.CrossAttn import CrossAttnModel, CrossAttnModel2
-from src.transformer.model.model_io import create_directory_if_not_exists, load_stock_model
+from src.transformer.model.CrossAttn import CrossAttentionTransformer
+from src.transformer.model.model_utils import create_directory_if_not_exists, load_stock_model, vis_losses_accs
 from src.transformer.train.train_stock import train, evaluate
 from torch.utils.data import DataLoader
 import torch.nn as nn
+import torch.optim as optim
 from config import Config
-
 
 def test():
     import numpy as np
@@ -33,7 +33,7 @@ def load_model_test():
     test_loader = DataLoader(dataset=dataset, batch_size=config.batch_size, shuffle=False, drop_last=True)
 
     # 모델
-    model = CrossAttnModel2(config).to(config.device)
+    model = CrossAttentionTransformer(config).to(config.device)
     model_dir = config.model_base_dir+"model_state_dict_epoch_3_20231210121644.pt"
     model, optimizer, curr_epoch, curr_losses = load_stock_model(model_dir, model, config)
     criterion = nn.MSELoss()
@@ -44,25 +44,59 @@ def main():
     # 설정
     config = Config()
     create_directory_if_not_exists(config.model_base_dir)
+    create_directory_if_not_exists(config.vis_base_dir)
 
     # 데이터
     data_processor = DoubleAxisDataProcessor(config)
-    np_stock_data = data_processor.get_np_data()
-    dataset = TimeSeriesDataset(config, np_stock_data)
-    train_loader = DataLoader(dataset=dataset, batch_size=config.batch_size, shuffle=False, drop_last=True)
+    train_data, test_data = data_processor.split_train_test(test_size=0.3)
+    train_dataset = TimeSeriesDataset(config, train_data)
+    test_dataset = TimeSeriesDataset(config, test_data)
+    train_dataloader = DataLoader(dataset=train_dataset, batch_size=config.batch_size, shuffle=False, drop_last=True)
+    test_dataloader = DataLoader(dataset=test_dataset, batch_size=len(test_dataset), shuffle=False, drop_last=True)
 
     # 모델 학습 및 저장
-    # model = CrossAttnModel(config.seq_len, config.input_size, config.output_size, config.heads)
-    model = CrossAttnModel2(config)
-    model, losses = train(config, model, train_loader)
+    model = CrossAttentionTransformer(config)
+
+    train_losses, test_losses = list(), list()
+
+    criterion = nn.MSELoss()
+    optimizer = optim.Adam(model.parameters(), lr=config.learning_rate)
+
+    model.train()
+    model.to(config.device)
+
+    train_losses = list()
+    test_losses = list()
+
+    for epoch in range(config.epochs):
+        model.train()
+        train_epoch_loss = train(train_dataloader, model, criterion, optimizer, config.device)
+        train_losses.append(train_epoch_loss)
+
+        model.eval()
+        test_epoch_loss = evaluate(test_dataloader, model, criterion, config.device)
+        test_losses.append(test_epoch_loss)
+        print(f"epoch: {epoch} train_loss: {train_epoch_loss:.6f} test_loss: {test_epoch_loss:.6f}")
+
+    vis_losses_accs(train_losses, test_losses, config)
 
     # 평가 및 시각화
+
 
     print('here')
 
 
 if __name__ == '__main__':
     # test()
-    # main()
-    load_model_test()
+    main()
+    # load_model_test()
+    # import random
+    # config = Config()
+    # create_directory_if_not_exists(config.vis_base_dir)
+    #
+    # train_losses = [random.random() for _ in range(10)]
+    # test_losses = [random.random() for _ in range(10)]
+    #
+    # # 예제 실행
+    # vis_losses_accs(train_losses, test_losses, config)
 

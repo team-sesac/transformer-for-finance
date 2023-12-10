@@ -6,9 +6,6 @@ from torch.utils.data import Dataset, DataLoader
 
 # 2차원 데이터(가로: 피처, 세로: 날짜) 시계열 데이터셋
 
-class DoubleAxisDataset(Dataset):
-    pass
-
 
 class DoubleAxisDataProcessor:
     def __init__(self, config):
@@ -23,6 +20,13 @@ class DoubleAxisDataProcessor:
 
     def get_np_data(self):
         return self.dfs
+
+    def split_train_test(self, test_size=0.3):
+        data = self.get_np_data()
+        n_train = round((1 - test_size) * len(data))
+        train_data = data[:n_train]
+        test_data = data[n_train:]
+        return train_data, test_data
 
     @staticmethod
     def import_and_list_dataframes(file_paths, use_cols=None):

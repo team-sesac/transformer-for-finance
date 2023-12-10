@@ -2,12 +2,13 @@ from datetime import datetime
 import torch
 import os
 import torch.optim as optim
-
+import matplotlib.pyplot as plt
 
 
 def create_directory_if_not_exists(directory):
     if not os.path.exists(directory):
         os.makedirs(directory)
+
 
 def save_stock_model(config, epoch, model, optimizer, losses):
     curr_time = datetime.now().strftime("%y%m%d%H%M%S")
@@ -38,4 +39,21 @@ def load_stock_model(load_path, model, config):
 
     return model, optimizer, curr_epoch, curr_losses
 
+
+def vis_losses_accs(train_losses, test_losses, config):
+    fig, ax = plt.subplots(figsize=(14, 5))
+    ax.plot(train_losses, label='Train Loss', color='red')
+    ax.plot(test_losses, label='Test Loss', color='green')
+
+    ax.set_xlabel("Epoch", fontsize=15)
+    ax.set_ylabel("Loss", fontsize=15)
+    ax.tick_params(labelsize=10)
+    ax.legend()
+
+    fig.suptitle("CrossAttentionTransformer Loss by Epoch", fontsize=16)
+    fig.tight_layout()
+    curr_time = datetime.now().strftime("%y%m%d%H%M")
+    save_path = f'{config.vis_base_dir}vis_loss_{curr_time}.png'
+
+    plt.savefig(save_path)
 

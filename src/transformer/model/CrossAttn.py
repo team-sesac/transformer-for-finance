@@ -107,30 +107,14 @@ class PositionalEmbedding(nn.Module):
 메인 모델 v1
 '''
 
-class CrossAttnModel2(nn.Module):
+class CrossAttentionTransformer(nn.Module):
     def __init__(self, config):
-        super(CrossAttnModel2, self).__init__()
+        super(CrossAttentionTransformer, self).__init__()
         self.config = config
 
         # 리니어 레이어를 담을 리스트
         # self.linear_layers = nn.ModuleList([nn.Linear(4, 1) for _ in range(10)])
         self.linear_layers = nn.ModuleList([nn.Linear(in_features=config.len_feature_columns, out_features=config.n_labels, dtype=torch.float32).to(config.device) for _ in range(config.n_files)])
-
-        # BERT 레이어
-        # self.bert = nn.Linear(10, 3)  # 입력 10, 출력 3
-        # self.bert = nn.Linear(in_features=config.n_files, out_features=config.n_labels)  # 입력:종목, 출력:예측할 가격들
-        # self.time_transformer = transformers.TimeSeriesTransformerModel(
-        #     config=transformers.TimeSeriesTransformerConfig(
-        #         prediction_length=1,
-        #         hidden_size=768,
-        #         num_hidden_layers=3,
-        #         num_attention_heads=3,
-        #         intermediate_size=3072,
-        #         dropout=0.1,
-        #         attention_dropout=0.1,
-        #         activation="gelu",
-        #     ),
-        # )
 
         # https://github.com/lucidrains/performer-pytorch
         self.performer_ticker = Performer(
@@ -152,9 +136,6 @@ class CrossAttnModel2(nn.Module):
         self.pos_embedding_ticker = PositionalEmbedding(config.n_files, config.seq_len)
         self.pos_embedding_time = PositionalEmbedding(config.seq_len, config.n_files)
 
-        # LSTM 레이어
-        # self.lstm = nn.LSTM(input_size=30, hidden_size=10, batch_first=True)
-        self.lstm = nn.LSTM(input_size=config.n_labels, hidden_size=config.n_files, batch_first=True, dtype=torch.float32)
 
     def forward(self, x):
         # 리니어 레이어를 통과하여 결과를 리스트에 저장
