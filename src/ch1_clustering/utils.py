@@ -14,6 +14,7 @@ from fastdtw import fastdtw
 
 #  차트 설정
 import matplotlib.pyplot as plt
+import seaborn as sns
 plt.rcParams["font.family"] = 'Malgun Gothic'
 # plt.rcParams["font.family"] = 'AppleGothic'
 plt.rcParams["figure.figsize"] = (14,4)
