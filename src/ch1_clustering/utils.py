@@ -33,7 +33,21 @@ def get_KRX_list():
     data_list = pd.concat([kospi_list, kosdaq_list], axis=0)
     return data_list
 
-# 종목을 start_date ~ end_date 기간 데이터
+# Close 데이터셋
+def get_close_data(stock_code, stock_name, start_date, end_date):
+    df = fdr.DataReader(stock_code,start_date, end_date)
+    df.columns = stock_name
+
+    # 전처리
+    # 30% 이상 거래 없는 종목 제거
+    missing_fractions = df.isnull().mean().sort_values(ascending=False)
+    drop_list = sorted(list(missing_fractions[missing_fractions > 0.3].index))
+    # 결측치를 바로 전일과 동일하게 설정(ffill)
+    df.drop(labels=drop_list, axis=1, inplace=True)
+    close_df = df.fillna(method='ffill')
+    return close_df
+
+# 종목별 주식데이터
 def get_stock_data(stock_code, stock_name, start_date, end_date):
     stock_df = fdr.DataReader(stock_code, start_date, end_date).reset_index()
     stock_df.insert(0, 'Code', [f'{stock_code}'] * stock_df.shape[0])
