@@ -64,8 +64,8 @@ def standard_scaler(df):
     return df
 
 # Affinity Propagation Clustering
-def affinity_clustering(df, damping=0.5, max_iter=250, affinity=['euclidean']):
-    ap = AffinityPropagation(damping=damping, max_iter=max_iter, affinity=affinity)
+def affinity_clustering(df, damping=0.5, max_iter=250):
+    ap = AffinityPropagation(damping=damping, max_iter=max_iter, affinity='euclidean')
     ap.fit(df)
     labels = ap.predict(df)
     return labels
@@ -131,10 +131,10 @@ def filter_clusters(df, min_count=3):
     return df_filtered
 
 # main 함수 예시
-def get_cluster_labels_dataset():
+def get_cluster_labels_dataset(stock_list, start_date, end_date):
     # 종가 데이터 추출
-    start_date, end_date = '20231101', '20231130'
-    stock_list = get_KRX_list()[:50]
+    # start_date, end_date = '20231101', '20231130'
+    # stock_list = get_KRX_list()[:50]
 
     # 데이터 가공
     df = get_close_data(stock_list['Code'], stock_list['Name'], start_date, end_date)
@@ -154,12 +154,13 @@ if __name__ == "__main__":
     # file = '../../data/krx_2016.csv'
     # file_path = os.path.join(os.path.dirname(__file__), file)
     # df = pd.read_csv(file_path, index_col=0)
-    # start_date, end_date = '20160101', '20231206'
-    # df = get_test_dataset(start_date, end_date)
-    # df = get_dataset(start_date, end_date)
+    
+    # 설정
+    start_date, end_date = '20160101', '20231206'
+    stock_list = get_KRX_list()[:50]
 
     # 실행
-    df = get_cluster_labels_dataset()
+    df = get_cluster_labels_dataset(stock_list, start_date, end_date)
     # print(df)
 
     # 시각화
