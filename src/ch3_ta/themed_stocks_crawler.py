@@ -1,45 +1,16 @@
+import pandas as pd
 import requests
 from bs4 import BeautifulSoup
-
 
 #contentarea_left > table.type_1.theme > tbody > tr:nth-child(4) > td.col_type1 > a
 #contentarea_left > table.type_1.theme > tbody > tr:nth-child(5) > td.col_type1 > a
 #contentarea_left > table.type_1.theme > tbody > tr:nth-child(36) > td.col_type1 > a
 #contentarea_left > table.type_1.theme > tbody > tr:nth-child(64) > td.col_type1 > a
 
-import requests
-from bs4 import BeautifulSoup
-
-url = "https://finance.naver.com/sise/theme.naver?&page=1"
-response = requests.get(url)
-
-if response.status_code == 200:
-    soup = BeautifulSoup(response.text, 'html.parser')
-
-    # tbody 안에 있는 모든 tr 요소 선택하기
-    tr_elements = soup.select("#contentarea_left > table.type_1.theme > tbody > tr")
-
-    for i, tr_element in enumerate(tr_elements, start=1):
-        # 각 tr 요소에서 a 태그 선택하기
-        a_element = tr_element.select_one("td.col_type1 > a")
-
-        if a_element:
-            # 선택한 a 태그의 href 속성 가져오기
-            href = a_element.get("href")
-
-            if href:
-                print(f"Element {i}의 URL: {href}")
-            else:
-                print(f"Element {i}의 href 속성을 찾을 수 없습니다.")
-        else:
-            print(f"Element {i}에서 a 태그를 찾을 수 없습니다.")
-else:
-    print("웹페이지에 접근할 수 없습니다. 상태 코드:", response.status_code)
-
-
-def get_single_theme_stocks(url):
+def get_single_theme_stocks(url=None, theme=None):
     if url is None:
-        url = "https://finance.naver.com/sise/sise_group_detail.naver?type=theme&no=545"
+        url = "https://finance.naver.com/sise/sise_group_detail.naver?type=theme&no=468"
+        theme = "random"
 
     #contentarea_left > table > tbody > tr:nth-child(4) > td:nth-child(1)
 
@@ -75,5 +46,23 @@ def get_single_theme_stocks(url):
     else:
         print("웹페이지에 접근할 수 없습니다. 상태 코드:", response.status_code)
 
-    print(stocks)
-    return stocks
+    df = pd.DataFrame({'theme': theme,'title': stocks})
+
+    return df
+
+
+
+if __name__ == '__main__':
+    stock_list = [
+        ('화이자(PFIZER)','https://finance.naver.com/sise/sise_group_detail.naver?type=theme&no=468'),
+        ('전자결제(전자화폐)', 'https://finance.naver.com/sise/sise_group_detail.naver?type=theme&no=272')
+
+    ]
+
+    df = get_single_theme_stocks(theme=stock_list[0][0], url=stock_list[0][1])
+    for key, val in stock_list[1:]:
+        stock_df = get_single_theme_stocks(url=val, theme=key)
+        df = pd.concat([df, stock_df])
+
+    df.to_csv('themed_stocks.csv', encoding='cp949')
+    print('saved csv file (themed stocks)')
