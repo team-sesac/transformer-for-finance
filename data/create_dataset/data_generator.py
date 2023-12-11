@@ -1,5 +1,7 @@
 import pandas as pd
-import utils as u
+import data.create_dataset.utils as u
+from src.transformer.model.model_utils import create_directory_if_not_exists
+
 
 # TA 지표 포함 전체 columns 이름 목록
 # ['Open', 'High', 'Low', 'Close', 'Volume', 'Change', 'pct_change',
@@ -34,7 +36,8 @@ def get_stock_codes():
     return u.get_KRX_list().reset_index(drop=True)
 
 
-def get_dataset_for_transformer(idx, ticker):
+def get_dataset_for_transformer(idx, ticker,
+                                start_date='20100101', end_date='20231208', since='2010'):
     '''
     1개 종목의 2010년~2023년 동안의 주가 + 일부 ta지표 데이터셋을 csv로 저장하는 코드
     ticker.Code = '005380'
@@ -48,9 +51,8 @@ def get_dataset_for_transformer(idx, ticker):
     #               'momentum_rsi', 'trend_cci', 'volatility_bbh']
 
     # 1개 종목의 데이터 가져오기
-    df = u.get_single_ticker(symbol=ticker.Code,
-                              start_date='20100101',
-                              end_date='20231130').reset_index()
+    df = u.get_single_ticker(symbol=ticker.Code, start_date=start_date,
+                             end_date=end_date).reset_index()
     try:
         df = u.cat_ta(df)
         # 선택지표만 추출하려면 아래것 주석해제
@@ -67,7 +69,7 @@ def get_dataset_for_transformer(idx, ticker):
     df.insert(loc=1, column='Ticker', value=ticker.Name)
 
     # 상위폴더의 tf_dataset에 01_삼성전자_2010.csv 파일명으로 저장하기
-    u.export_csv(df, f'../tf_dataset/{idx}_{ticker.Name}_2010.csv')
+    df.to_csv(filepath=f'../themed/{idx}_{ticker.Name}_{since}.csv', encoding='UTF-8', index=False)
 
 
 def save_all_stock_data():
@@ -85,6 +87,16 @@ def save_all_stock_data():
             print(f"saved ~ {idx} {item.Name}")
 
 
+def save_themed_stock_30years(stocks):
+    for idx, ticker in enumerate(stocks.itertuples()):
+        # idx += 1207
+        try:
+            get_dataset_for_transformer(idx, ticker, start_date='1990', end_date='20231208', since='1990')
+        except:
+            continue
+        if idx % 10 == 0:
+            print(f"saved ~ {idx} {ticker.Name}")
+
+
 if __name__ == '__main__':
     save_all_stock_data()
-
