@@ -116,7 +116,8 @@ def add_full_ta(stock_df):
 
 
 def get_listing_date(path='/stock_listing_date.csv'):
-    code_data = pd.read_html('http://kind.krx.co.kr/corpgeneral/corpList.do?method=download', header=0, encoding='cp949')[0]
+    code_data = pd.read_html('http://kind.krx.co.kr/corpgeneral/corpList.do?method=download',
+                             header=0, encoding='cp949', converters={'종목코드': str})[0]
     curr_dir = os.getcwd()
     out_path = curr_dir + path
     code_data.to_csv(out_path, encoding='UTF-8', index=False)

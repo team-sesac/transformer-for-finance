@@ -271,21 +271,26 @@ def main_routine():
     merged_df = cat_ticker_code(df)
 
     # 코드 concat 데이터 저장 및 중복 제거 저장
-    merged_df = pd.read_csv('themed_stocks_with_code.csv')
-    df_no_duplicates = merged_df.drop_duplicates(subset='Code', keep='first')
-    df_no_duplicates.to_csv('themed_stocks_with_code_no_dup.csv', encoding='UTF-8')
-    merged_df = pd.read_csv('themed_stocks_with_code_no_dup.csv', encoding='UTF-8')
+    merged_df = pd.read_csv('themed_stocks_with_code.csv', encoding='UTF-8', dtype={'Code': object})
+    df_no_duplicates = merged_df.drop_duplicates(subset='Name', keep='first')
+    df_no_duplicates.to_csv('themed_stocks_with_code_no_dup.csv', encoding='UTF-8', index=False)
+    merged_df = pd.read_csv('themed_stocks_with_code_no_dup.csv', encoding='UTF-8', dtype={'Code': object})
 
     # 주식 상장일 데이터 수집 및 저장
     get_listing_date(path='/stock_listing_date.csv')
+    listing_df = pd.read_csv('stock_listing_date.csv', encoding='UTF-8', dtype={'상장일': object, '종목코드': object})
+
+    # 테마주 데이터에 상장일 추가
+    merged_df = pd.merge(left=merged_df, right=listing_df, how="left", left_on="Code", right_on="종목코드")
+    merged_df.to_csv('themed_stock_all.csv', encoding='UTF-8', index=False)
+
+    # 테마주 상장일로부터 모든 데이터 수집
+    merged_df = pd.read_csv('themed_stock_all.csv', encoding='UTF-8', dtype='object')
+    merged_df = merged_df.rename(columns={'상장일': 'ListingDate'})
+    save_themed_stock_since_listing_date(merged_df)
+
+    print('saved all themed stock data')
 
 
 if __name__ == '__main__':
-    # main_routine()
-    merged_df = pd.read_csv('themed_stocks_with_code_no_dup.csv', encoding='UTF-8')
-    listing_df = pd.read_csv('stock_listing_date.csv', encoding='UTF-8')
-    ta_df = save_themed_stock_since_listing_date(stocks=merged_df, listing=listing_df, out_directory=)
-    print('here')
-
-
-
+    main_routine()

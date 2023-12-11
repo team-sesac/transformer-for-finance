@@ -38,7 +38,7 @@ def get_stock_codes():
     return u.get_KRX_list().reset_index(drop=True)
 
 
-def get_dataset_for_transformer(idx, ticker, start_date='20100101', end_date='20231208', out_directory='./'):
+def get_dataset_for_transformer(idx, ticker, start_date='20100101', end_date='202312207'):
     '''
     1개 종목의 2010년~2023년 동안의 주가 + 일부 ta지표 데이터셋을 csv로 저장하는 코드
     ticker.Code = '005380'
@@ -52,8 +52,7 @@ def get_dataset_for_transformer(idx, ticker, start_date='20100101', end_date='20
     #               'momentum_rsi', 'trend_cci', 'volatility_bbh']
 
     # 1개 종목의 데이터 가져오기
-    df = u.get_single_ticker(symbol=ticker.Code, start_date=start_date,
-                             end_date=end_date).reset_index()
+    df = u.get_single_ticker(symbol=ticker.Code, start_date=start_date, end_date=end_date).reset_index()
     try:
         df = u.cat_ta(df)
         # 선택지표만 추출하려면 아래것 주석해제
@@ -66,14 +65,18 @@ def get_dataset_for_transformer(idx, ticker, start_date='20100101', end_date='20
     columns_to_convert.remove('Date')
     df[columns_to_convert] = df[columns_to_convert].astype(float)
 
-    # 종목 이름 첫번재 줄에 쓰기
-    df.insert(loc=1, column='Ticker', value=ticker.Name)
-    # 상위폴더의 tf_dataset에 01_삼성전자_2010.csv 파일명으로 저장하기
-    # df.to_csv(filepath=f'../themed/{idx}_{ticker.Name}_2010.csv', encoding='UTF-8', index=False)
-    out_directory = os.getcwd() + f'/{idx}_{ticker.Name}_{since}.csv'
+    # 종목 코드 0번째 줄에 쓰기
+    df.insert(loc=0, column='Code', value=ticker.Code)
 
-    df.to_csv(filepath=out_directory, encoding='UTF-8', index=False)
-    print(f'saved {idx}_{ticker.Name}_{since}.csv')
+    # 종목 이름 0번째 줄에 쓰기
+    df.insert(loc=0, column='Ticker', value=ticker.Name)
+
+    # 파일 저장
+    # df.to_csv(filepath=f'../themed/{idx}_{ticker.Name}_2010.csv', encoding='UTF-8', index=False)
+    out_directory = f'./themed_stocks/{idx}_{ticker.Name}.csv'
+
+    df.to_csv(out_directory, encoding='UTF-8', index=False)
+    print(f'saved {idx}_{ticker.Name}.csv')
 
 def save_all_stock_data():
     '''한국 상장 종목별로 10개년 일일 데이터(ta 전체포함)셋 csv 만들기'''
@@ -90,13 +93,14 @@ def save_all_stock_data():
             print(f"saved ~ {idx} {item.Name}")
 
 
-def save_themed_stock_since_listing_date(stocks, listing, out_directory):
+def save_themed_stock_since_listing_date(stocks):
     for idx, ticker in enumerate(stocks.itertuples()):
-        get_dataset_for_transformer(idx, ticker, start_date='1990', end_date='20231208', out_directory=out_directory)
+        try:
+            get_dataset_for_transformer(idx, ticker, start_date=ticker.ListingDate, end_date='20231207')
+        except:
+            print(f"unable to collect {idx} {ticker.Name}")
 
         if idx % 10 == 0:
+            print("############################")
             print(f"saved ~ {idx} {ticker.Name}")
 
-
-# if __name__ == '__main__':
-#     save_all_stock_data()
