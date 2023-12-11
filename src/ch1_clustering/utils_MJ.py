@@ -57,6 +57,26 @@ def get_pct(df):
     returns = pd.DataFrame(returns)
     returns.columns = ['Returns']
     returns['Volatility'] = df.pct_change().std() * np.sqrt(days)
+
+    return returns
+
+# 평균수익, 변동성
+def get_pct_new(df):
+    days = df.shape[0]
+    returns = df.pct_change().mean() * days
+    returns = pd.DataFrame(returns)
+    returns.columns = ['Returns']
+    returns['Volatility'] = df.pct_change().std() * np.sqrt(days)
+    df = returns[returns['Returns']<=6 & returns['Volatility'] <10]
+    return df
+
+def get_pct_3(df):
+    days = df.shape[0]
+    returns = df.pct_change().mean() * days
+    returns = pd.DataFrame(returns)
+    returns.columns = ['Returns']
+    returns['Volatility'] = df.pct_change().std() * np.sqrt(days)
+    # df = returns[[6>=returns['Returns']>=1 & returns['Volatility']>=1]]
     return returns
 
 # 스케일러
@@ -81,7 +101,7 @@ def add_cluster_labels(df, labels):
 def visualize_clusters(df, labels):
       
     fig, ax = plt.subplots()
-    sc = ax.scatter(df.iloc[:, 0], df.iloc[:, 1], cmap='rainbow')
+    sc = ax.scatter(df.iloc[:, 0], df.iloc[:, 1], c=labels, cmap='rainbow')
     plt.title('Cluster')
     plt.xlabel('Mean Return')
     plt.ylabel('Volatility')
@@ -141,7 +161,9 @@ def get_cluster_labels_dataset(stock_list, start_date, end_date):
 
     # 데이터 가공
     df = get_close_data(stock_list['Code'], stock_list['Name'], start_date, end_date)
-    df = get_pct(df)
+    # df = get_pct(df)
+    # df = get_pct_new(df)
+    df = get_pct_3(df)
     df = standard_scaler(df)
 
     # euclidean Cluster
