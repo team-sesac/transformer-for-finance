@@ -1,3 +1,5 @@
+import os
+from datetime import datetime
 import ta
 import FinanceDataReader as fdr
 import pandas as pd
@@ -113,12 +115,34 @@ def add_full_ta(stock_df):
     return stock_df
 
 
+def get_listing_date(path='/stock_listing_date.csv'):
+    code_data = pd.read_html('http://kind.krx.co.kr/corpgeneral/corpList.do?method=download', header=0, encoding='cp949')[0]
+    curr_dir = os.getcwd()
+    out_path = curr_dir + path
+    code_data.to_csv(out_path, encoding='UTF-8', index=False)
+    return code_data
+
+
+
 # for transformers
 def get_single_ticker(symbol, start_date, end_date):
     df = fdr.DataReader(symbol, start_date, end_date)
     df['pct_change'] = df['Close'].pct_change() * 100
     return df
 
+
+def get_single_ticker_all(symbol, stock_code='005930'):
+
+    # 상장일 가져오기
+    listing_date = fdr.StockListing('KRX')[fdr.StockListing('KRX')['Symbol'] == symbol]['ListingDate'].values[0]
+
+    # 상장일부터 현재까지의 주가 데이터 가져오기
+    start_date = listing_date
+    end_date = '20231208'
+
+    df = fdr.DataReader(symbol, start_date, end_date)
+    df['pct_change'] = df['Close'].pct_change() * 100
+    return df
 
 def cat_ta(df, to_include=None):
     df = ta.add_all_ta_features(df,

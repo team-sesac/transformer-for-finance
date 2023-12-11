@@ -1,6 +1,8 @@
 import pandas as pd
 import data.create_dataset.utils as u
 from src.transformer.model.model_utils import create_directory_if_not_exists
+import os
+
 
 
 # TA 지표 포함 전체 columns 이름 목록
@@ -36,8 +38,7 @@ def get_stock_codes():
     return u.get_KRX_list().reset_index(drop=True)
 
 
-def get_dataset_for_transformer(idx, ticker,
-                                start_date='20100101', end_date='20231208', since='2010'):
+def get_dataset_for_transformer(idx, ticker, start_date='20100101', end_date='20231208', out_directory='./'):
     '''
     1개 종목의 2010년~2023년 동안의 주가 + 일부 ta지표 데이터셋을 csv로 저장하는 코드
     ticker.Code = '005380'
@@ -67,10 +68,12 @@ def get_dataset_for_transformer(idx, ticker,
 
     # 종목 이름 첫번재 줄에 쓰기
     df.insert(loc=1, column='Ticker', value=ticker.Name)
-
     # 상위폴더의 tf_dataset에 01_삼성전자_2010.csv 파일명으로 저장하기
-    df.to_csv(filepath=f'../themed/{idx}_{ticker.Name}_{since}.csv', encoding='UTF-8', index=False)
+    # df.to_csv(filepath=f'../themed/{idx}_{ticker.Name}_2010.csv', encoding='UTF-8', index=False)
+    out_directory = os.getcwd() + f'/{idx}_{ticker.Name}_{since}.csv'
 
+    df.to_csv(filepath=out_directory, encoding='UTF-8', index=False)
+    print(f'saved {idx}_{ticker.Name}_{since}.csv')
 
 def save_all_stock_data():
     '''한국 상장 종목별로 10개년 일일 데이터(ta 전체포함)셋 csv 만들기'''
@@ -87,16 +90,13 @@ def save_all_stock_data():
             print(f"saved ~ {idx} {item.Name}")
 
 
-def save_themed_stock_30years(stocks):
+def save_themed_stock_since_listing_date(stocks, listing, out_directory):
     for idx, ticker in enumerate(stocks.itertuples()):
-        # idx += 1207
-        try:
-            get_dataset_for_transformer(idx, ticker, start_date='1990', end_date='20231208', since='1990')
-        except:
-            continue
+        get_dataset_for_transformer(idx, ticker, start_date='1990', end_date='20231208', out_directory=out_directory)
+
         if idx % 10 == 0:
             print(f"saved ~ {idx} {ticker.Name}")
 
 
-if __name__ == '__main__':
-    save_all_stock_data()
+# if __name__ == '__main__':
+#     save_all_stock_data()

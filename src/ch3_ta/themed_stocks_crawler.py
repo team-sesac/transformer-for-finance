@@ -2,7 +2,8 @@ import pandas as pd
 import requests
 from bs4 import BeautifulSoup
 
-from data.create_dataset.data_generator import get_dataset_for_transformer, save_themed_stock_30years
+from data.create_dataset.data_generator import save_themed_stock_since_listing_date
+from data.create_dataset.utils import get_listing_date
 
 
 def get_single_theme_stocks(url=None, theme=None):
@@ -263,11 +264,28 @@ def save_stock_base_csv():
     print('saved csv file (themed stocks)')
 
 
-if __name__ == '__main__':
+def main_routine():
+    # 기본 주식 데이터 저장
     save_stock_base_csv()
     df = pd.read_csv('themed_stocks.csv', encoding='UTF-8')
     merged_df = cat_ticker_code(df)
-    # save_themed_stock_30years(merged_df)
+
+    # 코드 concat 데이터 저장 및 중복 제거 저장
+    merged_df = pd.read_csv('themed_stocks_with_code.csv')
+    df_no_duplicates = merged_df.drop_duplicates(subset='Code', keep='first')
+    df_no_duplicates.to_csv('themed_stocks_with_code_no_dup.csv', encoding='UTF-8')
+    merged_df = pd.read_csv('themed_stocks_with_code_no_dup.csv', encoding='UTF-8')
+
+    # 주식 상장일 데이터 수집 및 저장
+    get_listing_date(path='/stock_listing_date.csv')
+
+
+if __name__ == '__main__':
+    # main_routine()
+    merged_df = pd.read_csv('themed_stocks_with_code_no_dup.csv', encoding='UTF-8')
+    listing_df = pd.read_csv('stock_listing_date.csv', encoding='UTF-8')
+    ta_df = save_themed_stock_since_listing_date(stocks=merged_df, listing=listing_df, out_directory=)
+    print('here')
 
 
 
