@@ -8,6 +8,14 @@ import matplotlib.pyplot as plt
 import numpy as np
 from sklearn.preprocessing import MinMaxScaler
 
+def get_cluster0_stock():
+    df = pd.read_csv("themed_stocks_with_cluster.csv", dtype=str)
+    to_invest = df[df['Cluster'] == '0'][['Name', 'Code']].reset_index(drop=True)
+    listing_df = pd.read_csv("../ch3_ta/stock_listing_date.csv", encoding='UTF-8', dtype=str)
+    concat = pd.merge(left=to_invest, right=listing_df, how="left", left_on='Code', right_on='종목코드')
+    concat = concat[['Code', 'Name', '상장일']].sort_values(by='상장일', ascending=False)
+    concat.to_csv('cluster0.csv', index=False, encoding='UTF-8')
+    print(concat)
 
 def train_and_save_xgboost():
     # 피클 파일 로드
@@ -89,5 +97,6 @@ def visualize_feature_importance():
 
 
 if __name__ == '__main__':
-    train_and_save_xgboost()
+    get_cluster0_stock()
+    # train_and_save_xgboost()
     # visualize_feature_importance()

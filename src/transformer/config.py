@@ -8,7 +8,7 @@ class Config:
     device = get_device()
 
     # data
-    base_dir = '../../data/tf_dataset/'
+    base_dir = './themed_stocks/'
     file_paths = ['20_SK이노베이션_2010.csv',
                   '51_롯데케미칼_2010.csv',
                   '43_대한항공_2010.csv',
