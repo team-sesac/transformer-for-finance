@@ -2,17 +2,11 @@ import pandas as pd
 import requests
 from bs4 import BeautifulSoup
 
-#contentarea_left > table.type_1.theme > tbody > tr:nth-child(4) > td.col_type1 > a
-#contentarea_left > table.type_1.theme > tbody > tr:nth-child(5) > td.col_type1 > a
-#contentarea_left > table.type_1.theme > tbody > tr:nth-child(36) > td.col_type1 > a
-#contentarea_left > table.type_1.theme > tbody > tr:nth-child(64) > td.col_type1 > a
 
 def get_single_theme_stocks(url=None, theme=None):
     if url is None:
         url = "https://finance.naver.com/sise/sise_group_detail.naver?type=theme&no=468"
         theme = "random"
-
-    #contentarea_left > table > tbody > tr:nth-child(4) > td:nth-child(1)
 
     #contentarea > div:nth-child(5) > table > tbody > tr:nth-child(1) > td.name > div > a
     #contentarea > div:nth-child(5) > table > tbody > tr:nth-child(2) > td.name > div > a
