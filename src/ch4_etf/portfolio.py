@@ -6,14 +6,21 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 from src.ch4_etf.utils import load_close_data_of_portfolio_list
 from src.ch1_clustering.utils import *
+import pickle
 
 class Portfolio():
     def __init__(self):
         self.price = load_close_data_of_portfolio_list()
-        # Define the base folder for saving files
+        self.port_samples = 10000
         self.base_folder = os.path.join(os.getcwd(), 'portfolio')
-
-        # Create 'portfolio' folder if it doesn't exist
+        self.port_risks = None
+        self.port_returns = None
+        self.sorted_shape_idx = None
+        self.sorted_risk_idx = None
+        self.port_ratios = None
+        self.sorted_port_df = None
+        self.sorted_returns = None
+        self.sorted_risks = None
         self._create_portfolio_folder()
 
     def _create_portfolio_folder(self):
@@ -28,7 +35,7 @@ class Portfolio():
         port_returns = np.array([])
         port_risks = np.array([])
 
-        for i in range(10000):
+        for i in range(self.port_samples):
             # Portfolio ratios
             port_ratio = np.random.rand(len(self.price.columns))
             port_ratio /= port_ratio.sum()
@@ -62,7 +69,7 @@ class Portfolio():
 
     def save_optimized_portfolio_ratio(self, file='optimized_portfolio_ratio.csv'):
         '''Step 7. Save optimized portfolio ratios'''
-        if not hasattr(self, 'port_risks') or not hasattr(self, 'port_returns'):
+        if not self.port_risks or not self.port_returns:
             self._calculate_portfolio_performance()
 
         optimized_portfolio_ratio = pd.Series(self.sorted_port_df.iloc[0], index=self.sorted_port_df.columns)
@@ -70,12 +77,24 @@ class Portfolio():
 
         # Save to CSV
         file_path = os.path.join(self.base_folder, file)
-        optimized_portfolio_ratio.to_csv(file_path, index=False)
+        optimized_portfolio_ratio.to_csv(file_path)
 
     def _save_figure(self, filename):
         file_path = os.path.join(self.base_folder, filename)
         plt.savefig(file_path)
         plt.close()
+
+    def run_all_visualizations(self):
+        '''Run all visualization functions'''
+        if not self.port_risks.any() or not self.port_returns.any():
+            self._calculate_portfolio_performance()
+        self.visualize_rate_compared()
+        self.visualize_percent_change()
+        self.visualize_return_rate()
+        self.visualize_correlation_change()
+        self.visualize_return_on_volatility()
+        self.visualize_portfolio_ratio_by_sharp()
+        self.visualize_portfolio_returns_and_volatility_by_sharp()
 
     def visualize_rate_compared(self):
         '''Step 1. Visualize rate compared to the base date for 4 assets'''
@@ -137,8 +156,8 @@ class Portfolio():
         plt.figure(figsize=(12, 4))
         plt.stackplot(np.arange(1, len(self.sorted_port_df)+1, 1), np.array(self.sorted_port_df.T), labels=self.sorted_port_df.columns)
 
-        plt.xlim(0, 10000)
-        plt.legend(bbox_to_anchor=(1.12, 0.95))
+        plt.xlim(0, self.port_samples)
+        # plt.legend(bbox_to_anchor=(1.12, 0.95))
         plt.xlabel('Ranking of Sharpe Ratio')
         plt.ylabel('Portfolio Ratio')
         plt.title('Ranking of Optimal Portfolios by Sharpe Ratio')
@@ -147,28 +166,40 @@ class Portfolio():
     def visualize_portfolio_returns_and_volatility_by_sharp(self):
         '''Step 6. Visualize portfolio returns and volatility by Sharpe Ratio Ranking'''
         plt.figure(figsize=(12, 4))
-        plt.fill_between(x=np.arange(1, len(self.sorted_returns)+1, 1), y1=self.sorted_returns.tolist(), label='return')
-        plt.fill_between(x=np.arange(1, len(self.sorted_risks)+1, 1), y1=self.sorted_risks.tolist(), alpha=0.3, label='risk')
+        plt.fill_between(x=np.arange(1, len(self.sorted_returns[0])+1, 1), y1=self.sorted_returns[0], label='return')
+        plt.fill_between(x=np.arange(1, len(self.sorted_risks[0])+1, 1), y1=self.sorted_risks[0], alpha=0.3, label='risk')
         plt.xlabel('Ranking of Sharpe Ratio')
         plt.ylabel('Return & Risk')
         plt.title('Returns & Risks of Portfolio by Sharpe Ratio Ranking')
         plt.legend()
         self._save_figure('step6_portfolio_returns_and_volatility_by_sharpe.png')
 
-    def run_all_visualizations(self):
-        if not hasattr(self, 'port_risks') or not hasattr(self, 'port_returns'):
-            self._calculate_portfolio_performance()
-        '''Run all visualization functions'''
-        self.visualize_rate_compared()
-        self.visualize_percent_change()
-        self.visualize_return_rate()
-        self.visualize_correlation_change()
-        self.visualize_return_on_volatility()
-        self.visualize_portfolio_ratio_by_sharp()
-        self.visualize_portfolio_returns_and_volatility_by_sharp()
-
+    def save_to_pickle(self, file='portfolio.pkl'):
+        '''Save the Portfolio instance to a pickle file'''
+        file_path = os.path.join(self.base_folder, file)
+        with open(file_path, 'wb') as f:
+            pickle.dump(self, f)
+        print(f'Portfolio instance saved to {file_path}')
+        
+    @classmethod
+    def load_from_pickle(cls, file='portfolio.pkl'):
+        '''Load a Portfolio instance from a pickle file'''
+        instance = cls()
+        file_path = os.path.join(instance.base_folder, file)
+        with open(file_path, 'rb') as f:
+            loaded_portfolio = pickle.load(f)
+        print(f'Portfolio instance loaded from {file_path}')
+        return loaded_portfolio
 
 if __name__ == "__main__":
     pf = Portfolio()
-    # pf.run_all_visualizations()
     pf.save_optimized_portfolio_ratio()
+    pf.run_all_visualizations()
+    
+    # Save the instance to a pickle file
+    pf.save_to_pickle()
+
+    # Load the instance from the pickle file
+    # loaded_pf = Portfolio.load_from_pickle()
+    # loaded_pf = Portfolio.load_from_pickle('portfolio_1k_sample.pkl')
+    # loaded_pf.visualize_portfolio_returns_and_volatility_by_sharp()
