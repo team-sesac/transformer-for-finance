@@ -1,12 +1,12 @@
 import pickle
-
 import pandas as pd
 import xgboost as xgb
-# from sklearn.datasets import load_boston
 from sklearn.model_selection import train_test_split
 import matplotlib.pyplot as plt
+import seaborn as sns
 import numpy as np
 from sklearn.preprocessing import MinMaxScaler
+from sklearn.metrics import mean_squared_error
 
 def get_cluster0_stock():
     df = pd.read_csv("themed_stocks_with_cluster.csv", dtype=str)
@@ -22,18 +22,20 @@ def train_and_save_xgboost():
     # with open('concatenated_array500.pkl', 'rb') as file:
     #     loaded_object = pickle.load(file)
     print('start loading')
-    loaded_object = pd.read_csv("./concat_themed_stocks/all_stocks_all.csv")
+    loaded_object = pd.read_csv("./all_final_entry_stock.csv")
     # loaded_object = pd.read_csv("./final_entry/133_YG PLUS.csv")
+    loaded_object = loaded_object.fillna(0)
     print('csv loaded')
 
     # X = loaded_object[:, 4:]
     # y = loaded_object[:, 7]
 
-    # 특정 열(0, 1, 2, 3, 7번째) 제거
-    columns_to_remove = [0, 1, 2, 3, 7]
+    # 특정 열(0, 1, 2, 6번째) 제거
+    columns_to_remove = [0, 1, 2, 6]
     X = np.delete(loaded_object.values, columns_to_remove, axis=1)
+
     print(X.shape)
-    y = loaded_object.iloc[:, 7]  # 예측할 열 선택
+    y = loaded_object.iloc[:, 6]  # 예측할 열 선택
     print(y.shape)
 
     # MinMax Scaling
@@ -47,9 +49,30 @@ def train_and_save_xgboost():
     model = xgb.XGBRegressor(objective='reg:squarederror', seed=42)
     model.fit(X_train, y_train)
 
-    with open('xgboost_model_fin.pkl', 'wb') as file:
+    with open('xgboost_model_final_entry.pkl', 'wb') as file:
         pickle.dump(model, file)
         print('saved model')
+
+        # Make predictions on the test set
+        y_pred = model.predict(X_test)
+
+        # Evaluate the model
+        mse = mean_squared_error(y_test, y_pred)
+        rmse = np.sqrt(mse)
+        print(f'Mean Squared Error on Test Set: {mse:.4f}')
+        print(f'Root Mean Squared Error on Test Set: {rmse:.4f}')
+
+        ###
+        # Create a DataFrame with y_test and y_pred
+        comparison_df = pd.DataFrame({'y_test': y_test,
+                                      'y_pred': y_pred,
+                                      'change': y_test-y_pred,
+                                      'chg_rate': (y_test-y_pred) / y_pred * 100})
+
+        # Export the DataFrame to CSV
+        comparison_df.to_csv('predict_comparison.csv', index=False)
+        print('Comparison CSV exported')
+
 
 def visualize_feature_importance():
     col_names = ['Volume', 'Change', 'pct_change', 'volume_adi', 'volume_obv', 'volume_cmf', 'volume_fi',
@@ -71,7 +94,7 @@ def visualize_feature_importance():
                  'momentum_ppo_signal', 'momentum_ppo_hist', 'momentum_pvo', 'momentum_pvo_signal', 'momentum_pvo_hist',
                  'momentum_kama', 'others_dr', 'others_dlr', 'others_cr']
 
-    with open('xgboost_model.pkl', 'rb') as file:
+    with open('xgboost_model_final_entry.pkl', 'rb') as file:
         model = pickle.load(file)
 
     # 특성 중요도 얻기
@@ -87,16 +110,29 @@ def visualize_feature_importance():
     for feature, importance in feature_importance:
         print(f"{feature}: {importance}")
 
+    to_visualize = feature_importance[:20]
+
     # 중요도 시각화
-    plt.barh(*zip(*feature_importance))
+    # # plt.barh(*zip(*feature_importance))
+    # plt.barh(*zip(*to_visualize))
+    # plt.xlabel('Importance')
+    # plt.ylabel('Feature')
+    # plt.title('Feature Importance in XGBoost')
+    # plt.savefig("feature_importance_in_xgboost_final_entry.png")
+    # plt.show()
+
+    ###
+    # 중요도 시각화
+    plt.figure(figsize=(14, 7))
+    sns.barplot(x=[val[1] for val in to_visualize], y=[val[0] for val in to_visualize], palette='husl')
     plt.xlabel('Importance')
     plt.ylabel('Feature')
     plt.title('Feature Importance in XGBoost')
-    plt.savefig("feature_importance_in_xgboost.png")
+    plt.savefig("feature_importance_in_xgboost_final_entry.png")
     plt.show()
 
 
 if __name__ == '__main__':
-    get_cluster0_stock()
+    # get_cluster0_stock()
     # train_and_save_xgboost()
-    # visualize_feature_importance()
+    visualize_feature_importance()

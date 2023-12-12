@@ -73,7 +73,8 @@ def get_dataset_for_transformer(idx, ticker, start_date='20100101', end_date='20
 
     # 파일 저장
     # df.to_csv(filepath=f'../themed/{idx}_{ticker.Name}_2010.csv', encoding='UTF-8', index=False)
-    out_directory = f'./themed_stocks/{idx}_{ticker.Name}.csv'
+    # out_directory = f'./final_entry/{idx}_{ticker.Name}.csv'
+    out_directory = f'./../final_entry/{idx}_{ticker.Name}.csv'
 
     df.to_csv(out_directory, encoding='UTF-8', index=False)
     print(f'saved {idx}_{ticker.Name}.csv')
@@ -104,3 +105,10 @@ def save_themed_stock_since_listing_date(stocks):
             print("############################")
             print(f"saved ~ {idx} {ticker.Name}")
 
+
+def save_themed_stock_since_yg_listing_date(stocks, start_date):
+    for idx, ticker in enumerate(stocks.itertuples()):
+        try:
+            get_dataset_for_transformer(idx, ticker, start_date=start_date, end_date='20231208')
+        except:
+            print(f"unable to collect {idx} {ticker.Name}")

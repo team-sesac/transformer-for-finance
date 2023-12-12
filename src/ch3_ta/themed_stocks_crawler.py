@@ -260,7 +260,7 @@ def save_stock_base_csv():
         stock_df = get_single_theme_stocks(url=val, theme=key)
         df = pd.concat([df, stock_df])
 
-    df.to_csv('themed_stocks.csv', encoding='UTF-8', index=False)
+    df.to_csv('final_entry.csv', encoding='UTF-8', index=False)
     print('saved csv file (themed stocks)')
 
 
