@@ -116,6 +116,8 @@ class CrossAttentionTransformer(nn.Module):
         # self.linear_layers = nn.ModuleList([nn.Linear(4, 1) for _ in range(10)])
         self.linear_layers = nn.ModuleList([nn.Linear(in_features=config.len_feature_columns, out_features=config.n_labels, dtype=torch.float32).to(config.device) for _ in range(config.n_files)])
 
+        self.pos_embedding_ticker = PositionalEmbedding(config.n_files, config.seq_len)
+
         # https://github.com/lucidrains/performer-pytorch
         self.performer_ticker = Performer(
             dim=config.seq_len, # 트랜스포머의 입력 임베딩 및 출력 차원입니다. 이는 시퀀스의 길이 또는 특성의 차원을 나타냅니다.
@@ -125,6 +127,8 @@ class CrossAttentionTransformer(nn.Module):
             causal=False        # 캐주얼 어텐션 여부를 나타냅니다. 캐주얼 어텐션은 각 위치에서 이전 위치만 참조하도록 하는데, 이것은 주로 시퀀스 데이터에서 다음 값을 예측하는 데 사용됩니다.
         ).to(config.device)
 
+        self.pos_embedding_time = PositionalEmbedding(config.seq_len, config.n_files)
+
         self.performer_time = Performer(
             dim=config.n_files,
             depth=4,
@@ -133,9 +137,7 @@ class CrossAttentionTransformer(nn.Module):
             causal=False
         ).to(config.device)
 
-        self.pos_embedding_ticker = PositionalEmbedding(config.n_files, config.seq_len)
-        self.pos_embedding_time = PositionalEmbedding(config.seq_len, config.n_files)
-
+        self.linear = nn.Linear(in_features=10, out_features=1)
 
     def forward(self, x):
         # 리니어 레이어를 통과하여 결과를 리스트에 저장
@@ -154,22 +156,6 @@ class CrossAttentionTransformer(nn.Module):
 
             linear_outputs = torch.cat([linear_outputs, curr_output], dim=2)
 
-        # linear_outputs = [linear(x[:, i * self.config.len_feature_columns:(i + 1) * self.config.len_feature_columns]) for i, linear in enumerate(self.linear_layers)]
-
-        # 리스트를 텐서로 변환
-        # linear_outputs = torch.stack(linear_outputs, dim=1)
-
-        # time_transformer_output = self.time_transformer(linear_outputs)
-
-        # BERT 레이어 통과
-        # bert_output = self.transformer.forward(past_values=linear_outputs)
-
-        # LSTM 레이어에 통과
-        # lstm_output, _ = self.lstm(bert_output)
-
-        # x = self.performer_ticker(linear_outputs)
-        # x = self.performer_time(x)
-
         outputs = linear_outputs.permute(0, 2, 1)
         outputs = self.pos_embedding_ticker(outputs)
         outputs = self.performer_ticker(outputs)
@@ -177,6 +163,7 @@ class CrossAttentionTransformer(nn.Module):
         outputs = self.pos_embedding_time(outputs)
         outputs = self.performer_time(outputs)
 
-        outputs = outputs.mean(dim=1)
+        outputs = self.linear(outputs.view(8, -1, 124))
+        # outputs = outputs.mean(dim=1)
 
         return outputs

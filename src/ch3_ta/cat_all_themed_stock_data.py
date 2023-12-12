@@ -42,13 +42,13 @@ def merge_csv_files_alternative(folder_path, output_file):
     print(f"{csv_files=}")
 
     # 결과 파일을 추가 모드로 열기
-    with open(output_file, 'w', newline='', encoding='utf-8') as output_csv:
+    with open(output_file, 'w', newline='', encoding='cp949') as output_csv:
         writer = csv.writer(output_csv)
 
         # 각 CSV 파일을 읽어들여 결과 파일에 쓰기
         for index, csv_file in enumerate(tqdm(csv_files)):
             file_path = os.path.join(folder_path, csv_file)
-            with open(file_path, 'r', newline='', encoding='utf-8') as input_csv:
+            with open(file_path, 'r', newline='', encoding='cp949') as input_csv:
                 reader = csv.reader(input_csv)
 
                 # 헤더를 포함하거나 건너뛰기
@@ -69,8 +69,10 @@ def merge_csv_files_alternative(folder_path, output_file):
 # 예제 사용
 # folder_path = './concat_themed_stocks'  # 실제 폴더 경로로 변경
 # output_file = './concat_themed_stocks/all_stocks_all.csv'  # 실제 결과 파일 경로로 변경
-folder_path = './final_entry'  # 실제 폴더 경로로 변경
-output_file = './final_entry_and_xgboost/all_final_entry_stock.csv'  # 실제 결과 파일 경로로 변경
+# folder_path = './final_entry'  # 실제 폴더 경로로 변경
+# output_file = './final_entry_and_xgboost/all_final_entry_stock.csv'  # 실제 결과 파일 경로로 변경
+folder_path = './final_entry2'  # 실제 폴더 경로로 변경
+output_file = './final_entry_and_xgboost/all_final_entry_stock2.csv'  # 실제 결과 파일 경로로 변경
 merge_csv_files_alternative(folder_path, output_file)
 
 

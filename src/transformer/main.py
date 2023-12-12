@@ -3,7 +3,7 @@ from src.transformer.data_loader.single_axis_dataset import TimeSeriesDataset
 from src.transformer.model.CrossAttn import CrossAttentionTransformer
 from src.transformer.model.model_utils import create_directory_if_not_exists, load_stock_model, vis_losses_accs, \
     save_stock_model
-from src.transformer.train.train_stock import train, evaluate
+from src.transformer.train.train_stock import train, evaluate, predict
 from torch.utils.data import DataLoader
 import torch.nn as nn
 import torch.optim as optim
@@ -50,7 +50,7 @@ def main():
     # 데이터
     data_processor = DoubleAxisDataProcessor(config)
     train_data, test_data = data_processor.split_train_test(test_size=config.test_size)
-    x_scaler, y_scaler = data_processor.get_scalers()
+    scaler = data_processor.get_scaler()
     train_dataset = TimeSeriesDataset(config, train_data)
     test_dataset = TimeSeriesDataset(config, test_data)
     train_dataloader = DataLoader(dataset=train_dataset, batch_size=config.batch_size, shuffle=config.shuffle_train_data, drop_last=True)
@@ -82,13 +82,17 @@ def main():
         print(f"epoch: {epoch} train_loss: {train_epoch_loss:.6f} test_loss: {test_epoch_loss:.6f}")
 
         # 50 epoch 마다 모델의 state_dict 저장
-        if (epoch + 1) % config.save_every == 0:
-            save_stock_model(config, epoch, model, optimizer, train_losses, test_losses)
+        # if (epoch + 1) % config.save_every == 0:
+        #     save_stock_model(config, epoch, model, optimizer, train_losses, test_losses)
 
         # 학습 종료 후 모델의 state_dict
     test_loss = save_stock_model(config, config.epochs, model, optimizer, train_losses, test_losses)
 
     vis_losses_accs(train_losses, test_losses, config)
+
+    model.eval()
+    result = predict(dataloader=test_dataloader, model=model, device=config.device)
+
 
     # 평가 및 시각화
     print('here')

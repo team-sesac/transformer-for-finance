@@ -74,9 +74,9 @@ def get_dataset_for_transformer(idx, ticker, start_date='20100101', end_date='20
     # 파일 저장
     # df.to_csv(filepath=f'../themed/{idx}_{ticker.Name}_2010.csv', encoding='UTF-8', index=False)
     # out_directory = f'./final_entry/{idx}_{ticker.Name}.csv'
-    out_directory = f'./../final_entry/{idx}_{ticker.Name}.csv'
+    out_directory = f'./../final_entry2/{idx}_{ticker.Name}.csv'
 
-    df.to_csv(out_directory, encoding='UTF-8', index=False)
+    df.to_csv(out_directory, encoding='cp949', index=False)
     print(f'saved {idx}_{ticker.Name}.csv')
 
 def save_all_stock_data():

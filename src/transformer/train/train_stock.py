@@ -41,6 +41,15 @@ def evaluate(dataloader, model, criterion, device):
     return total_loss / len(dataloader)
 
 
+# 예측 함수 정의
+def predict(dataloader, model, device):
+    with torch.no_grad():
+        for inputs, targets in dataloader:
+            inputs, targets = inputs.to(device), targets.to(device)
+            predictions = model(inputs)
+            return predictions.detach().cpu().numpy()
+
+
 
 #####################
 def train_legacy(config, model, train_dataloader, test_dataloader):

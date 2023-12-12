@@ -18,18 +18,19 @@ class DoubleAxisDataProcessor:
         self.dfs = self.np_raw
 
         # 피처와, 타겟에 대해 Min-Max 스케일링 수행
-        self.x_scaler = MinMaxScaler()
-        self.dfs[:, config.cols_to_scale] = self.x_scaler.fit_transform(self.dfs[:, config.cols_to_scale])
-        self.y_scaler = MinMaxScaler()
-        self.dfs[:, config.label_columns] = self.y_scaler.fit_transform(self.dfs[:, config.label_columns])
+        self.scaler = MinMaxScaler()
+        # self.x_scaler = MinMaxScaler()
+        # self.dfs[:, config.cols_to_scale] = self.x_scaler.fit_transform(self.dfs[:, config.cols_to_scale])
+        # self.y_scaler = MinMaxScaler()
+        # self.dfs[:, config.label_columns] = self.y_scaler.fit_transform(self.dfs[:, config.label_columns])
 
-        # self.dfs = self.scaler.fit_transform(self.np_raw)
+        self.dfs = self.scaler.fit_transform(self.np_raw)
 
     def get_np_data(self):
         return self.dfs
 
-    def get_scalers(self):
-        return self.x_scaler, self.y_scaler
+    def get_scaler(self):
+        return self.scaler
 
     def split_train_test(self, test_size=0.3):
         data = self.get_np_data()

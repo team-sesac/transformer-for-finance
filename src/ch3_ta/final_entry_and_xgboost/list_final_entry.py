@@ -13,5 +13,5 @@ if __name__ == '__main__':
     theme_df = pd.read_csv('../../ch3_ta/themed_stocks_with_code_no_dup.csv', dtype=str)
     merged2 = pd.merge(left=merged, right=theme_df, on='Code')
 
-    merged2.to_csv('final_entry_basic_info.csv', index=False, encoding='UTF-8')
+    merged2.to_csv('final_entry_basic_info2.csv', index=False, encoding='cp949')
     print('here')

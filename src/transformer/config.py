@@ -1,35 +1,43 @@
 import torch
+import os
 
 
 def get_device(): return torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+
+
+def get_all_csv_files(directory):
+    csv_files = [file for file in os.listdir(directory) if file.endswith('.csv')]
+    return csv_files
 
 
 class Config:
     device = get_device()
 
     # data
-    base_dir = './themed_stocks/'
-    file_paths = ['20_SK이노베이션_2010.csv',
-                  '51_롯데케미칼_2010.csv',
-                  '43_대한항공_2010.csv',
-                  '225_아시아나항공_2010.csv']
+    base_dir = './../ch3_ta/final_entry/'
     # file_paths = ['20_SK이노베이션_2010.csv', '51_롯데케미칼_2010.csv']
+    file_paths = get_all_csv_files(base_dir)
     n_files = len(file_paths)
 
     # use_cols = ['Open', 'High', 'Low', 'Close', 'Volume',
     #             'Change', 'pct_change', 'volume_adi', 'volume_obv', 'volume_cmf']
-    use_cols = [
-        'Close',
-        'trend_sma_fast',
-        'trend_ema_fast',
-        'volatility_bbh',
-        'volatility_bbl',
-        'volume_nvi',
-        'trend_ichimoku_conv',
-        'trend_psar_up',
-        'volatility_dch',
-        'volatility_kch'
-    ]
+    # use_cols = [
+    #     'Close',
+    #     'trend_sma_fast',
+    #     'trend_ema_fast',
+    #     'volatility_bbh',
+    #     'volatility_bbl',
+    #     'volume_nvi',
+    #     'trend_ichimoku_conv',
+    #     'trend_psar_up',
+    #     'volatility_dch',
+    #     'volatility_kch'
+    # ]
+    # volume, volatility, trend, momentum
+    use_cols = ['Close', 'High', 'Low', 'pct_change',
+                'volume_em', 'volume_adi',
+                'volatility_bbp', 'volatility_kchi',
+                'trend_ema_slow', 'trend_ema_fast', 'trend_ichimoku_base']
 
     len_feature_columns = len(use_cols)
     label_columns = [0]
