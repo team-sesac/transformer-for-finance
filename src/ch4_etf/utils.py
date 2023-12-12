@@ -22,6 +22,7 @@ def save_close_data_of_portfolio_list(start_date='20111123', end_date='20231212'
     stock_list = KRX_list[KRX_list['Name'].isin(portfolio_list)]
 
     price = get_close_data(stock_list['Code'], stock_list['Name'], start_date, end_date)
+    price.dropna(axis=1, inplace=True)
     price.to_csv('src/ch4_etf/portfolio_close_data.csv')
 
 
