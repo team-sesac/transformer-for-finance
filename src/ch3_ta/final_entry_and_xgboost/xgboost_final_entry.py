@@ -7,6 +7,7 @@ import seaborn as sns
 import numpy as np
 from sklearn.preprocessing import MinMaxScaler
 from sklearn.metrics import mean_squared_error
+from sklearn.metrics import mean_absolute_error
 
 def get_cluster0_stock():
     df = pd.read_csv("themed_stocks_with_cluster.csv", dtype=str)
@@ -59,8 +60,34 @@ def train_and_save_xgboost():
         # Evaluate the model
         mse = mean_squared_error(y_test, y_pred)
         rmse = np.sqrt(mse)
+        mae = mean_absolute_error(y_test, y_pred)
+        mean_squared_error_per_prediction = mse / len(y_test)
+        r_mean_squared_error_per_prediction = rmse / len(y_test)
+        mean_absolute_error_per_prediction = mae / len(y_test)
         print(f'Mean Squared Error on Test Set: {mse:.4f}')
         print(f'Root Mean Squared Error on Test Set: {rmse:.4f}')
+        # metrics_df = pd.DataFrame({'mse': mse,
+        #                            'mse_per_pred': mean_squared_error_per_prediction,
+        #                            'rmse': rmse,
+        #                            'rmse_per_pred': r_mean_squared_error_per_prediction,
+        #                            'mae': mae,
+        #                            'mae_per_pred': mean_absolute_error_per_prediction,
+        #                            'sum_y_test': np.sum(y_test),
+        #                            'sum_pred_test': np.sum(y_pred),
+        #                            'diff_test': np.sum(y_test) - np.sum(y_pred),
+        #                            'diff_per_pred': (np.sum(y_test) - np.sum(y_pred))/len(y_test)
+        #                            }).T
+        metrics_df = pd.DataFrame({
+            'name': ['mse', 'mse_per_pred', 'rmse', 'rmse_per_pred',
+                     'mae', 'mae_per_pred', 'sum_y_test', 'sum_pred_test',
+                     'diff_test', 'diff_per_pred'],
+            'value': [mse, mean_squared_error_per_prediction,
+                      rmse, r_mean_squared_error_per_prediction,
+                      mae, mean_absolute_error_per_prediction,
+                      np.sum(y_test), np.sum(y_pred),
+                      np.sum(y_test-y_pred), (np.sum(y_test-y_pred))/len(y_test)]
+        })
+        metrics_df.to_csv('./loss_metrics.csv', index=False)
 
         ###
         # Create a DataFrame with y_test and y_pred
@@ -70,7 +97,7 @@ def train_and_save_xgboost():
                                       'chg_rate': (y_test-y_pred) / y_pred * 100})
 
         # Export the DataFrame to CSV
-        comparison_df.to_csv('predict_comparison.csv', index=False)
+        comparison_df.to_csv('./predict_comparison.csv', index=False)
         print('Comparison CSV exported')
 
 
@@ -112,15 +139,6 @@ def visualize_feature_importance():
 
     to_visualize = feature_importance[:20]
 
-    # 중요도 시각화
-    # # plt.barh(*zip(*feature_importance))
-    # plt.barh(*zip(*to_visualize))
-    # plt.xlabel('Importance')
-    # plt.ylabel('Feature')
-    # plt.title('Feature Importance in XGBoost')
-    # plt.savefig("feature_importance_in_xgboost_final_entry.png")
-    # plt.show()
-
     ###
     # 중요도 시각화
     plt.figure(figsize=(14, 7))
@@ -134,5 +152,5 @@ def visualize_feature_importance():
 
 if __name__ == '__main__':
     # get_cluster0_stock()
-    # train_and_save_xgboost()
+    train_and_save_xgboost()
     visualize_feature_importance()
