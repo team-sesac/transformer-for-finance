@@ -168,11 +168,24 @@ class Portfolio():
         plt.figure(figsize=(12, 4))
         plt.fill_between(x=np.arange(1, len(self.sorted_returns[0])+1, 1), y1=self.sorted_returns[0], label='return')
         plt.fill_between(x=np.arange(1, len(self.sorted_risks[0])+1, 1), y1=self.sorted_risks[0], alpha=0.3, label='risk')
+        plt.ylim(min(min(self.sorted_returns[0]), min((self.sorted_risks[0]/3))), max(max(self.sorted_returns[0]), max((self.sorted_risks[0]/3))))
         plt.xlabel('Ranking of Sharpe Ratio')
         plt.ylabel('Return & Risk')
         plt.title('Returns & Risks of Portfolio by Sharpe Ratio Ranking')
         plt.legend()
         self._save_figure('step6_portfolio_returns_and_volatility_by_sharpe.png')
+
+    def visualize_portfolio_returns_and_volatility_by_sharp_v2(self):
+        '''Step 6. Visualize portfolio returns and volatility by Sharpe Ratio Ranking'''
+        plt.figure(figsize=(12, 4))
+        plt.fill_between(x=np.arange(1, len(self.sorted_returns[0])+1, 1), y1=self.sorted_returns[0], label='return')
+        plt.fill_between(x=np.arange(1, len(self.sorted_risks[0])+1, 1), y1=(self.sorted_risks[0]/3), alpha=0.3, label='risk')
+        plt.ylim(min(min(self.sorted_returns[0]), min((self.sorted_risks[0]/3))), max(max(self.sorted_returns[0]), max((self.sorted_risks[0]/3))))
+        plt.xlabel('Ranking of Sharpe Ratio')
+        plt.ylabel('Return & Risk')
+        plt.title('Returns & Risks of Portfolio by Sharpe Ratio Ranking')
+        plt.legend()
+        self._save_figure('step6_v2_portfolio_returns_and_volatility_by_sharpe.png')
 
     def save_to_pickle(self, file='portfolio.pkl'):
         '''Save the Portfolio instance to a pickle file'''
@@ -192,14 +205,13 @@ class Portfolio():
         return loaded_portfolio
 
 if __name__ == "__main__":
-    pf = Portfolio()
-    pf.save_optimized_portfolio_ratio()
-    pf.run_all_visualizations()
-    
-    # Save the instance to a pickle file
-    pf.save_to_pickle()
+    # pf = Portfolio()
+    # pf.save_optimized_portfolio_ratio()
+    # pf.run_all_visualizations()
+    # pf.save_to_pickle()
 
     # Load the instance from the pickle file
-    # loaded_pf = Portfolio.load_from_pickle()
     # loaded_pf = Portfolio.load_from_pickle('portfolio_1k_sample.pkl')
-    # loaded_pf.visualize_portfolio_returns_and_volatility_by_sharp()
+    loaded_pf = Portfolio.load_from_pickle()
+    loaded_pf.visualize_portfolio_returns_and_volatility_by_sharp_v2()
+
