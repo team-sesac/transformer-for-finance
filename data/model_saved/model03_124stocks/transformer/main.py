@@ -43,11 +43,10 @@ def load_model_and_evaluate():
     # 모델
     model = CrossAttentionTransformer(config).to(config.device)
     model_dir = config.model_base_dir+config.model_to_load
-    model, optimizer, curr_epoch, curr_train_losses, curr_test_losses, scaler = load_stock_model(model_dir, model, config)
+    model, optimizer, curr_epoch, curr_train_losses, curr_test_losses, _ = load_stock_model(model_dir, model, config)
 
     all_pred = predict(all_dataloader, model, config.device)
     targets = all_data[:, config.label_columns[0]::config.len_feature_columns]
-
 
     # pred_inversed = scaler.inverse_transform(all_pred)
     # target_inversed = scaler.inverse_transform(targets)
@@ -96,8 +95,8 @@ def main():
         print(f"epoch: {epoch} train_loss: {train_epoch_loss:.6f} test_loss: {test_epoch_loss:.6f}")
 
         # 50 epoch 마다 모델의 state_dict 저장
-        # if (epoch + 1) % config.save_every == 0:
-        #     save_stock_model(config, epoch, model, optimizer, train_losses, test_losses)
+        if (epoch + 1) % config.save_every == 0:
+            save_stock_model(config, config.epochs, scaler, model, optimizer, train_losses, test_losses)
 
         # 학습 종료 후 모델의 state_dict
     save_stock_model(config, config.epochs, scaler, model, optimizer, train_losses, test_losses)

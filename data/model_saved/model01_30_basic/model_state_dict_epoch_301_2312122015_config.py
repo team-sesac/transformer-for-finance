@@ -16,7 +16,7 @@ class Config:
     # data
     base_dir = './../ch3_ta/final_entry/'
     # file_paths = ['20_SK이노베이션_2010.csv', '51_롯데케미칼_2010.csv']
-    file_paths = get_all_csv_files(base_dir)
+    file_paths = get_all_csv_files(base_dir)[:30]
     n_files = len(file_paths)
 
     # use_cols = ['Open', 'High', 'Low', 'Close', 'Volume',
@@ -68,16 +68,16 @@ class Config:
     heads = 8
 
     batch_size = 8
-    learning_rate = 0.000005
-    epochs = 3000 # 300
+    learning_rate = 0.0001
+    epochs = 300 # 300
     random_seed = 42
 
     # to save model
-    model_base_dir = '../../data/model/'
-    save_every = 500 # 50
+    model_base_dir = '../../model/'
+    save_every = 50 # 50
     do_continue_train = False    # 每次训练把上一次的final_state作为下一次的init_state，仅用于RNN类型模型，目前仅支持pytorch
     # model_to_load = 'model_state_dict_epoch_3_20231210121644.pt'
     model_to_load = 'model_state_dict_epoch_301_2312122015.pt'
     # to save visualization figures
-    vis_base_dir = '../../data/visual/'
+    vis_base_dir = '../../visual/'
 
