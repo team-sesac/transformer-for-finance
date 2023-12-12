@@ -10,11 +10,12 @@ def create_directory_if_not_exists(directory):
         os.makedirs(directory)
 
 
-def save_stock_model(config, epoch, model, optimizer, train_losses, test_losses):
+def save_stock_model(config, epoch, scaler, model, optimizer, train_losses, test_losses):
     curr_time = datetime.now().strftime("%y%m%d%H%M")
     save_path = f'{config.model_base_dir}model_state_dict_epoch_{epoch + 1}_{curr_time}.pt'
     torch.save({
         'epoch': epoch,
+        'scaler': scaler,
         'model_state_dict': model.state_dict(),
         'optimizer_state_dict': optimizer.state_dict(),
         'train_losses': train_losses,
@@ -38,8 +39,9 @@ def load_stock_model(load_path, model, config):
     curr_epoch = checkpoint['epoch']
     curr_train_losses = checkpoint['train_losses']
     curr_test_losses = checkpoint['test_losses']
+    curr_scaler = checkpoint['scaler']
 
-    return model, optimizer, curr_epoch, curr_train_losses, curr_test_losses
+    return model, optimizer, curr_epoch, curr_train_losses, curr_test_losses, curr_scaler
 
 
 def vis_losses_accs(train_losses, test_losses, config):
@@ -61,3 +63,26 @@ def vis_losses_accs(train_losses, test_losses, config):
 
 
 # 모델 예측 시각화
+def vis_close_price(all_pred, n_train, n_test, targets, config):
+    fig, ax = plt.subplots(figsize=(14, 5))
+
+    # plt.plot(range(246), real[:246], label="real")
+    # plt.plot(range(246 - 30, 246), result, label="predict")
+    pred = all_pred[:, 0]
+    target = targets[:, 0]
+    ax.plot(pred, label='Actual', color='red')
+    ax.plot(target, label='Predict', color='blue')
+
+    ax.set_xlabel("Time", fontsize=15)
+    ax.set_ylabel("Close", fontsize=15)
+    ax.tick_params(labelsize=10)
+    ax.legend()
+
+    fig.suptitle("CrossAttentionTransformer Loss by Epoch", fontsize=16)
+    fig.tight_layout()
+    curr_time = datetime.now().strftime("%y%m%d%H%M")
+    save_path = f'{config.vis_base_dir}vis_close_{curr_time}.png'
+
+    plt.savefig(save_path)
+    plt.show()
+

@@ -16,7 +16,7 @@ class Config:
     # data
     base_dir = './../ch3_ta/final_entry/'
     # file_paths = ['20_SK이노베이션_2010.csv', '51_롯데케미칼_2010.csv']
-    file_paths = get_all_csv_files(base_dir)
+    file_paths = get_all_csv_files(base_dir)[:30]
     n_files = len(file_paths)
 
     # use_cols = ['Open', 'High', 'Low', 'Close', 'Volume',
@@ -34,13 +34,14 @@ class Config:
     #     'volatility_kch'
     # ]
     # volume, volatility, trend, momentum
-    use_cols = ['Close', 'High', 'Low', 'pct_change',
-                'volume_em', 'volume_adi',
-                'volatility_bbp', 'volatility_kchi',
-                'trend_ema_slow', 'trend_ema_fast', 'trend_ichimoku_base']
+    use_cols = ['High', 'Low', 'Close', 'Change', 'volume_obv',
+                'volatility_kchi', 'trend_ema_slow']
+                # 'volume_em', 'volume_adi',
+                # 'volatility_bbp', 'volatility_kchi',
+                # 'trend_ema_slow', 'trend_ema_fast', 'trend_ichimoku_base']
 
     len_feature_columns = len(use_cols)
-    label_columns = [0]
+    label_columns = [2]
     n_labels = len(label_columns)
 
     # columns_to_scale 생성
@@ -67,7 +68,7 @@ class Config:
     heads = 8
 
     batch_size = 8
-    learning_rate = 0.00001
+    learning_rate = 0.0001
     epochs = 300 # 300
     random_seed = 42
 
@@ -75,8 +76,8 @@ class Config:
     model_base_dir = '../../data/model/'
     save_every = 50 # 50
     do_continue_train = False    # 每次训练把上一次的final_state作为下一次的init_state，仅用于RNN类型模型，目前仅支持pytorch
-    model_to_load = 'model_state_dict_epoch_3_20231210121644.pt'
-
+    # model_to_load = 'model_state_dict_epoch_3_20231210121644.pt'
+    model_to_load = 'model_state_dict_epoch_301_2312122015.pt'
     # to save visualization figures
     vis_base_dir = '../../data/visual/'
 

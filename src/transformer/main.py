@@ -2,7 +2,7 @@ from src.transformer.data_loader.double_axis_dataset import DoubleAxisDataProces
 from src.transformer.data_loader.single_axis_dataset import TimeSeriesDataset
 from src.transformer.model.CrossAttn import CrossAttentionTransformer
 from src.transformer.model.model_utils import create_directory_if_not_exists, load_stock_model, vis_losses_accs, \
-    save_stock_model
+    save_stock_model, vis_close_price
 from src.transformer.train.train_stock import train, evaluate, predict
 from torch.utils.data import DataLoader
 import torch.nn as nn
@@ -24,22 +24,35 @@ def test():
     print(result)
 
 
-def load_model_test():
+def load_model_and_evaluate():
     config = Config()
 
     # 데이터
     data_processor = DoubleAxisDataProcessor(config)
-    np_stock_data = data_processor.get_np_data()
-    dataset = TimeSeriesDataset(config, np_stock_data)
-    test_loader = DataLoader(dataset=dataset, batch_size=config.batch_size, shuffle=False, drop_last=True)
+    train_data, test_data = data_processor.split_train_test(test_size=config.test_size)
+    scaler = data_processor.get_scaler()
+    all_data = data_processor.get_np_data()
 
+    # 모든 데이터
+    all_dataset = TimeSeriesDataset(config, all_data)
+    all_dataloader = DataLoader(dataset=all_dataset, batch_size=len(all_dataset), shuffle=False, drop_last=True)
+
+    # # 최근 20% 일자
+    # test_dataset = TimeSeriesDataset(config, test_data)
+    # test_dataloader = DataLoader(dataset=test_dataset, batch_size=len(test_data), shuffle=False, drop_last=True)
     # 모델
     model = CrossAttentionTransformer(config).to(config.device)
-    model_dir = config.model_base_dir+"model_state_dict_epoch_3_20231210121644.pt"
-    model, optimizer, curr_epoch, curr_losses = load_stock_model(model_dir, model, config)
-    criterion = nn.MSELoss()
-    eval_loss = evaluate(model, test_loader, criterion, config)
-    print(eval_loss)
+    model_dir = config.model_base_dir+config.model_to_load
+    model, optimizer, curr_epoch, curr_train_losses, curr_test_losses, _ = load_stock_model(model_dir, model, config)
+
+    all_pred = predict(all_dataloader, model, config.device)
+    targets = all_data[:, config.label_columns[0]::config.len_feature_columns]
+
+    # pred_inversed = scaler.inverse_transform(all_pred)
+    # target_inversed = scaler.inverse_transform(targets)
+    vis_close_price(all_pred, len(train_data), len(test_data), targets, config)
+
+
 
 def main():
     # 설정
@@ -86,7 +99,7 @@ def main():
         #     save_stock_model(config, epoch, model, optimizer, train_losses, test_losses)
 
         # 학습 종료 후 모델의 state_dict
-    test_loss = save_stock_model(config, config.epochs, model, optimizer, train_losses, test_losses)
+    save_stock_model(config, config.epochs, scaler, model, optimizer, train_losses, test_losses)
 
     vis_losses_accs(train_losses, test_losses, config)
 
@@ -100,8 +113,8 @@ def main():
 
 if __name__ == '__main__':
     # test()
-    main()
-    # load_model_test()
+    # main()
+    load_model_and_evaluate()
     # import random
     # config = Config()
     # create_directory_if_not_exists(config.vis_base_dir)

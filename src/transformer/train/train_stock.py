@@ -43,6 +43,7 @@ def evaluate(dataloader, model, criterion, device):
 
 # 예측 함수 정의
 def predict(dataloader, model, device):
+    model.eval()
     with torch.no_grad():
         for inputs, targets in dataloader:
             inputs, targets = inputs.to(device), targets.to(device)

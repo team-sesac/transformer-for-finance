@@ -137,8 +137,6 @@ class CrossAttentionTransformer(nn.Module):
             causal=False
         ).to(config.device)
 
-        self.linear = nn.Linear(in_features=10, out_features=1)
-
     def forward(self, x):
         # 리니어 레이어를 통과하여 결과를 리스트에 저장
         # linear_outputs = [linear(x[:, i * 4:(i + 1) * 4]) for i, linear in enumerate(self.linear_layers)]
@@ -163,7 +161,6 @@ class CrossAttentionTransformer(nn.Module):
         outputs = self.pos_embedding_time(outputs)
         outputs = self.performer_time(outputs)
 
-        outputs = self.linear(outputs.view(8, -1, 124))
-        # outputs = outputs.mean(dim=1)
+        outputs = outputs.mean(dim=1)
 
         return outputs
