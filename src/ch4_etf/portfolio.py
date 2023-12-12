@@ -11,7 +11,7 @@ import pickle
 class Portfolio():
     def __init__(self):
         self.price = load_close_data_of_portfolio_list()
-        self.port_samples = 10000
+        self.port_samples = 200000
         self.base_folder = os.path.join(os.getcwd(), 'portfolio')
         self.port_risks = None
         self.port_returns = None
@@ -95,6 +95,7 @@ class Portfolio():
         self.visualize_return_on_volatility()
         self.visualize_portfolio_ratio_by_sharp()
         self.visualize_portfolio_returns_and_volatility_by_sharp()
+        self.visualize_portfolio_returns_and_volatility_by_sharp_v2()
 
     def visualize_rate_compared(self):
         '''Step 1. Visualize rate compared to the base date for 4 assets'''
@@ -205,13 +206,13 @@ class Portfolio():
         return loaded_portfolio
 
 if __name__ == "__main__":
-    # pf = Portfolio()
-    # pf.save_optimized_portfolio_ratio()
-    # pf.run_all_visualizations()
-    # pf.save_to_pickle()
+    pf = Portfolio()
+    pf.save_optimized_portfolio_ratio()
+    pf.run_all_visualizations()
+    pf.save_to_pickle('portfolio_1m_samples.pkl')
 
     # Load the instance from the pickle file
     # loaded_pf = Portfolio.load_from_pickle('portfolio_1k_sample.pkl')
-    loaded_pf = Portfolio.load_from_pickle()
-    loaded_pf.visualize_portfolio_returns_and_volatility_by_sharp_v2()
+    # loaded_pf = Portfolio.load_from_pickle()
+    # loaded_pf.visualize_portfolio_returns_and_volatility_by_sharp_v2()
 
