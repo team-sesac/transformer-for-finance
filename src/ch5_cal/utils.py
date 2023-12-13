@@ -2,10 +2,20 @@ import os, sys
 sys.path.append(os.getcwd()) # vscode
 from src.ch1_clustering.utils import *
 import pandas as pd
+import numpy as np
 from datetime import datetime
 # today 'yyyymmdd' 형식으로 포맷팅
 today = datetime.now().strftime('%Y%m%d')
-etf_stock_price_df = 'src/ch5_cal/etf_stock_price_df.csv'
+
+base_folder = os.path.join(os.getcwd(), 'src/ch5_cal/')
+
+etf_stock_price_df = 'etf_stock_price_df.csv'
+etf_stock_pred_price_df = 'etf_stock_pred_price_df.csv'
+
+etf_stock_price_df = os.path.join(base_folder,etf_stock_price_df)
+etf_stock_pred_price_df = os.path.join(base_folder,etf_stock_pred_price_df)
+
+
 
 def load_etf_info(file="portfolio/optimized_portfolio_ratio.csv"):
     etf_list = pd.read_csv(file, index_col=0)
@@ -50,11 +60,11 @@ def calculate_etf_returns(target_day=2):
     return total_return_without_ratio, total_return_with_ratio
 
 
-def calculate_active_etf_returns(target_day=2, loss=0.003, fee=0.001):
+def calculate_active_etf_returns(target_day=1, loss=0.003, fee=0.001):
     # Load data
-    act_stock_price_df = load_etf_stock_price_df().iloc[[-target_day]] # 전달 받은 파일의 종목 종가
-    act_stock_pred_price_df = load_etf_stock_price_df().iloc[[-target_day]] # 전달 받은 파일로 변경
-    
+    act_stock_price_df = load_etf_stock_price_df().iloc[[-target_day]] # 종목 종가
+    act_stock_pred_price_df = load_etf_stock_price_df(etf_stock_pred_price_df).iloc[[-target_day]] # 전달 받은 파일로 변경
+
     # 모델의 loss 만큼 보수적으로 계산, 매도 수수료 적용
     act_stock_pred_price_df = act_stock_pred_price_df * (1-loss) * (1-fee)
 
@@ -65,7 +75,7 @@ def calculate_active_etf_returns(target_day=2, loss=0.003, fee=0.001):
     # 매수 판단
     # 1 = 매수, 0 = 보류
     weights = np.array([act_stock_pred_price_df.iloc[0,:] > act_stock_price_df.iloc[0,:]])
-    
+
     # # 계산
     weighted_returns = returns.values * weights
     total_return_with_ratio = weighted_returns.sum()
