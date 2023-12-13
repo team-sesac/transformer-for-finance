@@ -1,0 +1,2 @@
+model_state_dict_epoch_301_2312122015
+vis_close_2312122032
