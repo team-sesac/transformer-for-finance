@@ -13,6 +13,7 @@ class DoubleAxisDataProcessor:
         self.config.file_paths = [config.base_dir + i for i in config.file_paths]
 
         self.np_raw = self.import_and_list_dataframes(self.config.file_paths, self.config.use_cols)
+        self.save_close_by_tickers(self.config.file_paths)
         self.np_raw[np.isnan(self.np_raw)] = 0
 
         self.dfs = self.np_raw
@@ -55,6 +56,14 @@ class DoubleAxisDataProcessor:
             use_cols = ['Open', 'High', 'Low', 'Close', 'Volume']
 
         return np.concatenate([pd.read_csv(file_path, usecols=use_cols).to_numpy() for file_path in file_paths], axis=1)
+
+    @staticmethod
+    def save_close_by_tickers(file_paths):
+        use_cols = ['Close']
+
+        concatenated = np.concatenate([pd.read_csv(file_path, usecols=use_cols).to_numpy() for file_path in file_paths], axis=1)
+        np.savetxt('close_by_tickers.csv', concatenated, delimiter=',', fmt='%f')
+        return
 
     @staticmethod
     def load_df(filepath):

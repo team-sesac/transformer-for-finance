@@ -1,10 +1,12 @@
+from sklearn.preprocessing import MinMaxScaler
+
 from data_loader.double_axis_dataset import DoubleAxisDataProcessor
 from data_loader.single_axis_dataset import TimeSeriesDataset
 from model.CrossAttn import CrossAttentionTransformer
 # from transformer.model.CrossAttn import CrossAttentionTransformer
 from src.transformer.model.model_utils import create_directory_if_not_exists, load_stock_model, vis_losses_accs, \
     save_stock_model, vis_close_price
-from src.transformer.train.train_stock import train, evaluate, predict
+from src.transformer.train.train_stock import train, evaluate, predict, predict_with_loss
 from torch.utils.data import DataLoader
 import torch.nn as nn
 import torch.optim as optim
@@ -41,28 +43,36 @@ def load_model_and_evaluate():
     all_dataloader = DataLoader(dataset=all_dataset, batch_size=len(all_dataset), shuffle=False, drop_last=True)
 
     # # 최근 20% 일자
-    # test_dataset = TimeSeriesDataset(config, test_data)
-    # test_dataloader = DataLoader(dataset=test_dataset, batch_size=len(test_data), shuffle=False, drop_last=True)
+    test_dataset = TimeSeriesDataset(config, test_data)
+    test_dataloader = DataLoader(dataset=test_dataset, batch_size=len(test_dataset), shuffle=False, drop_last=True)
+
     # 모델
     model = CrossAttentionTransformer(config).to(config.device)
     model_dir = config.model_base_dir+config.model_to_load
     model, optimizer, curr_epoch, curr_train_losses, curr_test_losses, scaler = load_stock_model(model_dir, model, config)
 
-    all_pred = predict(all_dataloader, model, config.device)
-    targets = all_data[:, config.label_columns[0]::config.len_feature_columns]
+    # loss 구하기
+    predict_with_loss(dataloader=test_dataloader, model=model, device=config.device)
+    # predict(dataloader=test_dataloader, model=model, device=config.device)
 
-    pred_same_timeframe = vis_close_price(all_pred, len(train_data), len(test_data), targets, config)
+    # all_pred = predict(all_dataloader, model, config.device)
+    # targets = all_data[:, config.label_columns[0]::config.len_feature_columns]
+
+    # pred_same_timeframe = vis_close_price(all_pred, len(train_data), len(test_data), targets, config)
+
 
     # scaled preds & targets export
-    np.savetxt(f'{config.vis_base_dir}scaled_close_preds.csv', pred_same_timeframe, delimiter=',')
-    np.savetxt(f'{config.vis_base_dir}scaled_close_targets.csv', targets, delimiter=',')
+    # np.savetxt(f'{config.vis_base_dir}scaled_close_preds.csv', pred_same_timeframe, delimiter=',')
+    # np.savetxt(f'{config.vis_base_dir}scaled_close_targets.csv', targets, delimiter=',')
     print('saved scaled_close_preds.csv')
 
     # scaled data 원상 복구
+    # scaler = MinMaxScaler()
+    # scaler.fit_transform()
     # for ticker in range(pred_same_timeframe.shape[1]):
     #     idx_to_invert = (config.len_feature_columns * ticker) + 2
     #     all_data[:, idx_to_invert] = pred_same_timeframe[:, ticker]
-    #
+
     # np.savetxt(f'{config.vis_base_dir}all_original.csv', all_data, delimiter=',')
     # inversed = scaler.inverse_transform(all_data)
     # np.savetxt(f'{config.vis_base_dir}all_inversed.csv', inversed, delimiter=',')

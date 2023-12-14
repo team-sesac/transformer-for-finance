@@ -1,3 +1,4 @@
+import pandas as pd
 import torch
 import torch.nn as nn
 import torch.optim as optim
@@ -5,6 +6,17 @@ from torch.optim.lr_scheduler import StepLR
 from tqdm import tqdm
 
 from src.transformer.model.model_utils import save_stock_model
+
+
+class RMSELoss(nn.Module):
+    def __init__(self, eps=1e-6):
+        super().__init__()
+        self.mse = nn.MSELoss()
+        self.eps = eps
+
+    def forward(self, yhat, y):
+        loss = torch.sqrt(self.mse(yhat, y) + self.eps)
+        return loss
 
 
 # 훈련 함수 정의
@@ -50,6 +62,43 @@ def predict(dataloader, model, device):
             predictions = model(inputs)
             return predictions.detach().cpu().numpy()
 
+
+def predict_with_loss(dataloader, model, device):
+    model.eval()
+
+    # mse
+    criterion_mse = nn.MSELoss()
+    total_mse_loss = 0.
+
+    # mae
+    criterion_mae = nn.L1Loss()
+    total_mae_loss = 0.
+
+    # rmse
+    criterion_rmse = RMSELoss()
+    total_rmse_loss = 0.
+
+    with torch.no_grad():
+        for inputs, targets in dataloader:
+            inputs, targets = inputs.to(device), targets.to(device)
+            predictions = model(inputs)
+
+            # loss
+            loss1 = criterion_mse(predictions, targets)
+            loss2 = criterion_mae(predictions, targets)
+            loss3 = criterion_rmse(predictions, targets)
+
+            # loss addition
+            total_mse_loss += loss1.item() / 30
+            total_mae_loss += loss2.item() / 30
+            total_rmse_loss += loss3.item() / 30
+
+    pd.DataFrame({
+        'name': ['MAE', 'MSE', 'RMSE'],
+        'results': [total_mae_loss, total_mse_loss, total_rmse_loss]
+    }).to_csv('loss_results.csv'
+              )
+    return total_mse_loss, total_mae_loss, total_rmse_loss
 
 
 #####################

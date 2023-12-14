@@ -72,7 +72,8 @@ def merge_csv_files_alternative(folder_path, output_file):
 # folder_path = './final_entry'  # 실제 폴더 경로로 변경
 # output_file = './final_entry_and_xgboost/all_final_entry_stock.csv'  # 실제 결과 파일 경로로 변경
 folder_path = './final_entry2'  # 실제 폴더 경로로 변경
-output_file = './final_entry_and_xgboost/all_final_entry_stock2.csv'  # 실제 결과 파일 경로로 변경
+# output_file = './final_entry_and_xgboost/all_final_entry_stock2.csv'  # 실제 결과 파일 경로로 변경
+output_file = './cat_files/final_entry_cat.csv'  # 실제 결과 파일 경로로 변경
 merge_csv_files_alternative(folder_path, output_file)
 
 
