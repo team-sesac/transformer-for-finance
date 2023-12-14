@@ -9,27 +9,25 @@ today = datetime.now().strftime('%Y%m%d')
 
 base_folder = os.path.join(os.getcwd(), 'src/ch5_cal/')
 
-active_etf_stock_price_df = 'active_etf_stock_price_df.csv'
-active_etf_stock_price_df = os.path.join(base_folder, active_etf_stock_price_df)
+active_etf_stock_price = 'active_etf_stock_price.csv'
+active_etf_stock_price = os.path.join(base_folder, active_etf_stock_price)
 
-def _save_file(df, filename):
+###
+def save_to_csv(df, filename):
     file_path = os.path.join(base_folder, filename)
     df.to_csv(file_path)
-
-def _load_csv(filename):
+###
+def load_csv(filename):
     file_path = os.path.join(base_folder, filename)
-    df = pd.read_csv(file_path)
-    return df
-
+    return pd.read_csv(file_path)
+###
 def load_active_etf_info(file="src/ch5_cal/active_etf_list.csv"):
-    etf_list = pd.read_csv(file, dtype=str)
-    return etf_list
+    return pd.read_csv(file, dtype=str)
+###
+def load_etf_stock_price_df(file=active_etf_stock_price):
+    return pd.read_csv(file, parse_dates=['Date'], index_col='Date')
 
-def load_etf_stock_price_df(file=active_etf_stock_price_df):
-    stock = pd.read_csv(file, parse_dates=['Date'], index_col='Date')
-    return stock
-
-def save_active_etf_stock_price_df(file=active_etf_stock_price_df, start_date='20111124', end_date=today):
+def save_active_etf_stock_price_df(file=active_etf_stock_price, start_date='20111123', end_date=today):
     stock_list = load_active_etf_info()
     stock = get_close_data(stock_list['Code'], stock_list['Name'], start_date, end_date)
     stock.to_csv(file)
@@ -37,41 +35,37 @@ def save_active_etf_stock_price_df(file=active_etf_stock_price_df, start_date='2
 
 def calculate_active_etf_returns(target_day=252):
     # Load data
-    active_etf_stock_price_df = load_etf_stock_price_df()[-target_day:]
-    active_etf_stock_pred_price_df = _load_csv('scaled_close_targets.csv')[-target_day:]
-    active_etf_stock_pred_price_df.columns = active_etf_stock_price_df.columns
-    active_etf_stock_pred_price_df.index = active_etf_stock_price_df.index
+    etf_prices = load_etf_stock_price_df()[-target_day:]
+    # etf_pred_prices = load_csv('scaled_close_preds.csv')[-target_day:]
+    etf_pred_prices = load_csv('scaled_close_targets.csv')[-target_day:]
+    etf_pred_prices.columns = etf_prices.columns
+    etf_pred_prices.index = etf_prices.index
 
-    # 매매 판단 인덱스. True = 매수, False = 킵
-    active_etf_stock_pred_price_df_index = active_etf_stock_pred_price_df.shift(-1) > active_etf_stock_pred_price_df
-    # 마지막행은 NaN으로 제외
-    active_etf_stock_pred_price_df_index = active_etf_stock_pred_price_df_index[:-1]
-    _save_file(active_etf_stock_pred_price_df_index, 'active_etf_stock_pred_price_df_index.csv')
+    # 매매 신호 계산
+    buy_signals = etf_pred_prices.shift(-1) > etf_pred_prices
+    buy_signals = buy_signals[:-1]
+    # save_to_csv(buy_signals, 'active_buy_signals.csv')
     
-    # 일자별 수익률
-    active_etf_stock_price_df_increment = (active_etf_stock_price_df.shift(-1) - active_etf_stock_price_df)/active_etf_stock_price_df
-    # 마지막행은 NaN으로 제외
-    active_etf_stock_price_df_increment = active_etf_stock_price_df_increment[:-1]
-    _save_file(active_etf_stock_price_df_increment, 'active_etf_stock_price_df_increment.csv')
+    # 일별 수익률
+    daily_returns = (etf_prices.shift(-1) - etf_prices)/etf_prices
+    daily_returns = daily_returns[:-1]
+    # save_to_csv(daily_returns, 'active_etf_daily_returns.csv')
 
-    # 일자별 수익률[매매 판단 인덱스]
-    active_etf_stock_price_df_increment_cumsum = active_etf_stock_price_df_increment[active_etf_stock_pred_price_df_index]
-    _save_file(active_etf_stock_price_df_increment_cumsum, 'active_etf_stock_price_df_increment_cumsum.csv')
+    # 매매 신호에 따른 수익률 필터링
+    filtered_returns = daily_returns[buy_signals]
+    # save_to_csv(filtered_returns, 'active_etf_filtered_returns.csv')
     
-    # 종목별 누적 수익률 cumsum()
-    cumulative_returns = active_etf_stock_price_df_increment_cumsum.fillna(0).cumsum()
-    # 전체 누적 수익률 : 종목별 누적 수익률의 평균.(동일한 비율로 투자 한다는 가정)
-    portfolio_cumulative_return = cumulative_returns.mean(axis=1)
+    # 기하평균 누적 수익률 계산
+    adjusted_returns = filtered_returns.fillna(0) + 1
+    geometric_returns = adjusted_returns.cumprod() - 1
+    portfolio_return = geometric_returns.prod(axis=1) ** (1 / len(geometric_returns.columns)) - 1
 
-    _save_file(cumulative_returns, 'active_etf_cumulative_returns.csv')
-    _save_file(portfolio_cumulative_return, 'active_etf_portfolio_cumulative_return.csv')
-    return cumulative_returns.tail(), portfolio_cumulative_return.tail()
-
-
-
+    save_to_csv(geometric_returns, 'active_etf_geometric_returns.csv')
+    save_to_csv(portfolio_return, 'active_etf_portfolio_return.csv')
+    return geometric_returns, portfolio_return
+    
 if __name__ == '__main__':
     # Active
     # save_active_etf_stock_price_df(start_date='20111123', end_date='20231208') # active etf price 
-    cumulative_returns, portfolio_cumulative_return = calculate_active_etf_returns()
-    # cumulative_returns, portfolio_cumulative_return = calculate_active_etf_returns(target_day=21)
-    print(cumulative_returns, portfolio_cumulative_return)
+    geometric_returns, portfolio_return = calculate_active_etf_returns()
+    print(geometric_returns, portfolio_return)
