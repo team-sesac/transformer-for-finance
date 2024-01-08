@@ -1,76 +1,317 @@
-# 프로젝트
+<div align=center style="margin-bottom:30px">
+  <img src="data/mdfile/logo.png">
+</div>
 
-# 우리만의 프로토콜
+## 국내 주식시장의 테마주 기반 ETF 상품 및 주가 예측모델
 
-- 글로 기록 남기기
-    - 작업 이력과 왜 그렇게 처리했는지 이유 등을 글로 작성
-    - 쓸모없는 아이디어는 없다. 모든 생각을 남긴다.
-    - 글을 지우지 않고 ~~취소선~~ 표시와 이유 작성
-        - 다른 사람이 같은 이유로 시간 낭비할 수 있다.
-    - 의견이 필요하면 회의때 같이 고민한다.
-- 회의
-    - 회의 시간은 짧게
-        - 진행 상황 공유 - 무~~~적권 칭찬하기
-        - 아이디어 검증은 코드로 진행 - 검증은 다음 계획에 추가
-        - 
-    - 언제 누구든지 회의 소집 가능
-        - 프로젝트 방향성 아이디어 등 시간 단축을 위한 경우 환영
-    - 글로 작성된 내용 위주로 진행
-        - 회의 전 구성원에게 생각할 시간을 주자
-    - 다음 계획 작성
-        - 작은 단위로 나누어서 시간과 부담을 최소화
-        - 우선순위 정하기.(각자 판단)
-        - 다음날 계획은 전날 작성. 쉬운거 위주로 준비.
-    - 회의록 작성 - 간단하게
-        - 진행 상황
-        - 의사결정 과정과 결과
-        - 다음 계획
-- 역할분담?
-- 페어프로그래밍 따라하기? 짝꿍정하기?
-- 쉬고싶으면?
-- 
+샤프지수를 고려한 패시브 ETF와 종가예측모델로 펀드매니저가 적극적으로 운용하는 액티브 ETF로 구성된 <b>"하이브리드 ETF 상품"</b><br>
+tableau 고객향 ETF 소개 페이지에서 종목 분석과 수익율을 확인할 수 있는 대시보드 제공
+<br><br>
 
-단순히 주식 예측 모델만 만드는건 주의해야함.
+> 액티브 ETF는 기초 지수의 성과를 그대로 추종하는 패시브 ETF와는 달리 기초 지수 대비 초과 수익을 목표로 하는 ETF 입니다. 따라서 기초 지수는 비교 지수(벤치마크)의 역할을 하며, 비교 지수를 상회하는 성과를 내기 위해 투자 종목과 매매 시점을 펀드매니저 재량으로 운용합니다.
+낮은 비용, 높은 접근성이라는 ETF의 제도적 장점과 시장 수익률 대비 초과 성과 달성이 가능한 액티브 펀드의 특성이 결합된 상품이라고 볼 수 있습니다.<br>
+<i>출처: tiger ETF (https://www.tigeretf.com/ko/content/activeJustice/content.do)</i>
 
-# 자동매매 서비스
+<br>
+크리스마스 기프트 실버벨 액티브 ETF로 안전성과 추가 수익 두 마리 토끼를 모두 잡으세요!
+<br><br>
 
-투자 기간 등 투자 성향에 따라 선택 가능
+## 📌 프로젝트 정보
+- 새싹 청년취업사관학교 용산2기 핀테크 특화 AI 엔지니어 양성과정
+- 2차 시계열 에측 프로젝트
+- 기간: 2023.12.04 ~ 2023.12.15
+- 주제: 국내 주식시장의 테마주 기반 ETF 상품 및 주가 예측모델
+- 팀명: 2조 둥둥운용
+- 상품명: 둥둥운용 크리스마스 기스트 실버벨 액티브 ETF
+- Tableau 대시보드: [크리스마스 기프트 실버벨 액티브 ETF 상품 소개 (링크)](https://public.tableau.com/app/profile/.75987136/viz/Project_17023890534100/ETF)
+- PPT: [주식형 ETF 및 주가예측모델 상세 프레젠테이션 파일 (링크)](https://drive.google.com/file/d/11flsHC7XXHnr7EedFPxIjsWYJz1ufSbx/view?usp=drive_link)
 
-- 초단타매매 & 극초단타매매(HFT)
-https://wikidocs.net/7686
-- 데이트레이딩 : 하루 단위로 검증 가능.
-- 종가베팅 & 스윙 매매 : 장투이므로 모의투자로 검증 가능. 설득력 감소 가능성.
+<br>
 
-# 주식 외 데이터 추가 시나리오
 
-- 특징
-    - 주식데이터 + 기타 데이터
-    - 딥러닝…?
-- 예시1) 급작스런 주식 변동 발생. 몇 개월 뒤 내부자거래 이슈 기사 발생.
-    - 네이버 등 기사 크롤링
-    - 기사 작성일시, 내용, 댓글
-    - 기사 시점으로 주식 변동 분석
-- 예시2) 퇴사율에 따른 주식 변동 학습
+## 👑 프로젝트 내용
 
-# 모델의 성능 검증 방법
+#### 1. 데이터 수집 및 전처리
 
-- 모의투자
+1. 데이터 수집: `FinanceDataReader` 라이브러리를 활용해 한국거래소 상장종목 데이터 수집
+    - 기간: 2016.01.01-2023.11.30
+    - 시간 단위: 일자 별 (Day)
+    - 종목: 한국 거래소 상장사 1827개
 
-# 서비스화 한다면?
+2. 보조지표 추가: `ta` 라이브러리를 활용해 수집한 데이터의 보조지표 연결
+3. 결측치 처리: 의심스러운 당기순손실 종목, 투자주의종목 등 투기적이거나 불공정거래의 개연성이 있는 종목을 제외하기 위해 시장의 흐름에서 벗어난 종목 제외
+4. 종목 클러스터링: K-means Clustering으로 x(수익율), y(변동성) 기준으로 클러스터링하여 silhouette score 기준으로 최적의 클러스터링 결과 선정
+    - 클러스터링 기준 피처: 종가 (Close)
+    - X-Axis: 23年 11⽉~ 종가의 평균 수익률 (Mean Return)
+    - Y-Axis: 변동성 (표준편차, Volatility)
+    - ETF의 기초지수: 한국 거래소 전체 산업군 내 1827개의 상장 종목 대상, 1년 내 종가의 평균 수익율(x)과 변동성(y)을 기준으로 클러스터링하여 가장 높은 수익율(x)과 가장 낮은 변동성(y)에 속한 종목을 그성종목으로 하는 지수. 단, Active ETF 구성종목은 y값이 가장 큰 그룹을 선정함
+5. 패시브 ETF 종목 선정: 변동성이 낮고, 수익율이 높은 클러스터 선택하여 클러스터 내 종목을 패시브 ETF 포트폴리오로 구성
+    - 종목 구성: SK하이닉스, POSCO홀딩스, 기아 등 242종목
+6. 액티브 ETF 종목 선정: 변동성이 높고, 수익율이 높은 클러스터 선택하여 클러스터 내 종목을 액티브 ETF 후보 종목으로 구성, 종목 상장일 기준으로 필터링(2011.11.23 - 2023.12.08)하여 최종 포트폴리오 구성
+    - 네이버 증권 테마 이름과 종목 크롤링하여 액티브 ETF 종목에 테마 이름과 매칭
+    - 종목 구성: YG엔터테인먼트, 한올바이오파마, 현대엘리베이터 등 124종목
 
-- 수익모델
-    - 출금 수수료
-        - AI서비스 성능 비례
-        - 입금액 등 흑우 고객 중요
-    - 광고
-        - 서비스 이용시간 비례
-        - 시초가매매 등 중요한 시간대 광고는 어떻게 할지 등 고려 필요
-        - 앱 푸시로 앱 사용시간 늘리기
-    - ~~금융회사 창업~~
-        - ~~자체 상품 개발~~
+<br>
 
-- 부가서비스
-    - 운세 봐주고 오늘의 투자상품 추천 - 병맛
-    - 투자 성향 판단 서비스
-        - 설문지 형태 - 일반적
-        - 보유 자산 기준
+#### 2. 샤프지수를 고려한 패시브 ETF
+
+<br>
+
+#### 3. 트랜스포머 종가예측모델을 사용한 액티브 ETF
+
+1. XGboost 모델을 통한 feature selection: 기본피처 6개 + ta 보조지표 85개로 y(Close)를 예측하는 머신러닝 모델 학습 후 feature importance 상위 지표 추출. 주가예측모델의 feature 후보군으로 선정
+2. DataSet: 
+    - DoubleAxis DataProcessor으로 다종목 다변수 데이터를 2차원 multivariate 데이터셋으로 변환
+    - Sequence Length에 맞춰 시계열 데이터 배치 처리
+    - MinMax Scaling으로 피처 정규화
+3. Multivariate Cross Attention Transformer 설계 및 학습:
+    - Module List에서 N개 종목의 다변수를 병렬 Linear를 통해 output_size 1로 축소
+    - Ticker-axis (종목 방향) Attention Transformer: 종목 방향으로 Positional Encoding 후 Performer(transformer) 연산
+    - Time-axis (시간 방향) Attention Transformer: 시간 방향으로 Posotional Encoding 후 Performer (transformer) 연산
+    - Mean Pooling으로 N개 종목의 직전 K일로부터 향후 1일을 각각 예측
+4. 하이퍼파라미터 튜닝:
+    - 모델 하이퍼파라미터에서는 종목 수, sequence length, batch, LR, Epoch 등 실험
+    - Performer 트랜스포머 파라미터에서는 dim, deepth, head, dim_head를 변경해 실험
+    - 30개 종목은 직전 10일로 향후 1일 예측하는 것이 유리, 50개 종목은 직전 6-8일로 향후 1일 예측하는 것이 유리
+
+<br>
+
+#### 4. 모델 비교 및 성능평가
+Bi-Directional LSTM과 Transformer 모델 비교
+
+1. 동일종목의 MAE, MSE, RMSE 비교
+2. LSTM 모델에서 관측되는 Time Lag 현상이 Transformer 모델에서는 발생하지 않아 트랜스포머의 성능이 더 우수
+
+<br>
+
+#### 5. 수익율 계산 및 백테스트
+패시브 ETF 포트폴리오와 액티브 ETF 포트폴리오의 기간 별 수익율 백테스트
+
+1. 패시브 ETF: <b>샤프지수</b> 적용 여부에 따라 1년, 6개월, 3개월, 1개월 보유 기간 동안 수익율 계산
+2. 액티브 ETF: <b>일봉거래</b> 적용 여부에 따라 1년, 6개월, 3개월, 1개월 보유 기간 동안 수익율 계산
+
+<br>
+
+#### 6. Tableau 대시보드
+
+고객에게 ETF 상품을 소개하기 위한 대시보드로 종목 분석과 기간 별 수익율, 종목별 수익 비중 등을 디스플레이
+
+1. ETF 기본 정보 및 구성 종목 분석:
+    - 기준가격(NAV), 발행좌수 등 주요 정보 상단 배치
+    - 포트폴리오 별 비율 TOP 10 bar chart, 업종별, 테마별 pie chart
+2. 패시브 ETF와 액티브 ETF의 기간별 수익율 분석:
+    - 액티브 ETF에 일봉거래 전략과 패시브 ETF에 샤프지수를 도입한 종목별 보유비율 리밸런싱 적용한 경우의 기간별 수익율 분석
+    - 액티브 ETF의 종목별 수익율 분석 트리맵
+    - 기간별 패시브, 액티브 ETF의 수익율 line chart
+3. 포트폴리오 종목 주가 캔들차트 및 종목별 수익율 시각화
+
+
+<br><br>
+
+
+## 🍉 기술 스택
+![Python](https://img.shields.io/badge/Python-3670A0?style=flat&logo=Python&logoColor=ffdd54)
+![PyTorch](https://img.shields.io/badge/PyTorch-%23EE4C2C.svg?style=flat&logo=PyTorch&logoColor=white)
+![Performer](https://img.shields.io/badge/Performer-83B81A?style=flat&logo=toml&logoColor=white)
+![scikit-learn](https://img.shields.io/badge/Scikit--learn-%23F7931E.svg?style=flat&logo=scikit-learn&logoColor=white)
+![Tableau](https://img.shields.io/badge/Tableau-E97627?style=flat&logo=tableau&logoColor=white)
+![Github](https://img.shields.io/badge/Github-181717.svg?style=flat&logo=github&logoColor=white)
+
+
+<br>
+
+
+## 👶 팀원 소개
+
+<table border="" cellspacing="0" cellpadding="0" max-width="2000px">
+    <tr width="100%">
+        <td align="center"><a href= "https://github.com/yunariver">강윤하</a></td>
+        <td align="center"><a href= "https://github.com/KimJuyoung23">김주영</a></td>
+        <td align="center"><a href= "https://github.com/seyeon-shijuan">박세연</a></td>
+        <td align="center"><a href= "https://github.com/JangMinJung">장민정</a></td>
+        <td align="center"><a href= "https://github.com/Minnie02">전민지</a></td>
+    </tr>
+    <tr width="100%">
+        <td align="center">
+          <a href= "https://github.com/yunariver">
+            <img src="https://avatars.githubusercontent.com/u/144081192?v=4" width="120px"/>
+          </a>
+        </td>
+        <td align="center">
+          <a href= "https://github.com/KimJuyoung23">
+            <img src="https://avatars.githubusercontent.com/u/38585726?v=4" width="120px"/>
+          </a>
+        </td>
+        <td align="center">
+          <a href= "https://github.com/seyeon-shijuan">
+            <img src="https://avatars.githubusercontent.com/u/66824510?v=4" width="120px"/>
+          </a>
+        </td>
+        <td align="center">
+          <a href= "https://github.com/JangMinJung">
+            <img src="https://avatars.githubusercontent.com/u/131653557?v=4" width="120px"/>
+          </a>
+        </td>
+        <td align="center">
+          <a href= "https://github.com/Minnie02">
+            <img src="https://avatars.githubusercontent.com/u/144119833?v=4" width="120px"/>
+          </a>
+        </td>
+    </tr>
+    <tr width="100%">
+      <td align="center">
+        <small>
+        프로젝트 발표<br>
+        LSTM/TF 성능비교<br>
+        논문분석&아키텍처
+        </small>
+      </td>
+      <td align="center">
+        <small>
+        종목 클러스터링<br>
+        샤프지수 PF최적화<br>
+        패시브ETF 백테스트
+        </small>
+      </td>
+      <td align="center">
+        <small>
+        XGboost 피처셀렉션<br>
+        트랜스포머 예측모델<br>
+        액티브ETF 백테스트
+        </small>
+      </td>
+      <td align="center">
+        <small>
+        테마주 수집<br>
+        TA 지표 분석<br>
+        시계열 모델 조사
+        </small>
+      </td>
+      <td align="center">
+        <small>
+        Tableau 대시보드<br>
+        ETF 분석&수익율<br>
+        주가차트분석
+        </small>
+      </td>
+   </tr>
+</table>
+
+<br>
+
+## ✨ Tableau Dashboard
+
+<div align=center>
+  <h3>ETF 기본 정보 및 구성 종목 분석</h3>
+</div>
+
+||
+|:-:|
+|![](data/mdfile/dashboard1.png)|
+
+<div align=center>
+  <h3>패시브 ETF와 액티브 ETF의 기간별 수익율 분석</h3>
+</div>
+
+||
+|:-:|
+|![](data/mdfile/dashboard2.png)|
+|![](data/mdfile/dashboard3.png)|
+
+<div align=center>
+  <h3>포트폴리오 종목 주가 캔들차트 및 종목별 수익율 시각화</h3>
+</div>
+
+||
+|:-:|
+|![](data/mdfile/dashboard4.png)|
+|![](data/mdfile/dashboard5.png)|
+
+
+<br>
+
+## 💀 스켈레톤
+- homepage(메인 페이지), users(회원), refrigerators(냉장고), recsys(추천) 4가지 기능으로 구성
+- 개별 앱에서도 세부 기능 기준으로 url, model, view, form, serializer 파일 분기 처리
+- static 파일(Nginx가 서빙할 정적 파일)은 별도의 파일에 분리
+- AI 앱은 별도의 FastAPI 및 Flask로 rest api를 통해 추론 요청/결괏값 통신
+
+```
+ndjango/
+│
+├── requirements.txt      # 필요 패키지
+├── manage.py
+├── ndjango/
+│   ├── __init__.py
+│   ├── asgi.py
+│   ├── settings.py
+│   ├── urls.py
+│   └── wsgi.py
+│
+├── homepage/                       # 개별 앱 (Feature)
+├── recsys/
+├── users/
+├── refrigerators/
+│   ├── __init__.py
+│   ├── admin.py
+│   ├── apps.py
+│   ├── templates/                   # HTML 파일
+│   │   └── refrigerators/
+│   │       ├── icon.html
+│   │       └── two_doors.html
+│   │
+│   ├── individual_urls/             # url
+│   │   ├── barcode_insert.py       
+│   │   ├── base_urls.py
+│   │   ├── crawling_urls.py
+│   │   ├── icon_urls.py
+│   │   ├── photo_urls.py
+│   │   └── table_urls.py
+│   │
+│   ├── models/                      # model
+│   │   ├── __init__.py
+│   │   ├── barcode_models.py
+│   │   ├── base_models.py
+│   │   ├── icon_models.py
+│   │   ├── photo_models.py
+│   │   └── table_models.py
+│   │
+│   ├── forms/                 # form
+│   │   ├── __init__.py
+│   │   ├── barcode_forms.py
+│   │   ├── base_forms.py
+│   │   ├── icon_forms.py
+│   │   ├── photo_forms.py
+│   │   └── table_forms.py
+│   │
+│   ├── serializers/                 # serializer
+│   │   ├── __init__.py
+│   │   ├── barcode_serializers.py
+│   │   ├── base_serializers.py
+│   │   ├── icon_serializers.py
+│   │   ├── photo_serializers.py
+│   │   └── table_serializers.py
+│   │
+│   ├── tests.py
+│   ├── urls.py
+│   └── views/                       # view
+│       ├── __init__.py
+│       ├── barcode_insert.py
+│       ├── base_crud.py
+│       ├── crawling_insert.py
+│       ├── icon_display.py
+│       ├── photo_insert.py
+│       └── table_display.py
+│
+├── media/                           # 유저가 업로드 한 파일
+└── static/
+    ├── homepage/
+    ├── recsys/
+    ├── refrigerators/               # HTML에 연결되는 정적 리소스
+    │   └── icon_display/
+    │       ├── header.js
+    │       ├── two_doors.css
+    │       └── two_doors.js
+    └── users/
+```
+
