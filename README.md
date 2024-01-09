@@ -4,7 +4,7 @@
 
 ## 국내 주식시장의 테마주 기반 ETF 상품 및 주가 예측모델
 
-샤프지수를 고려한 패시브 ETF와 종가예측모델로 펀드매니저가 적극적으로 운용하는 액티브 ETF로 구성된 <b>"하이브리드 ETF 상품"</b><br>
+샤프지수를 적용한 최적의 패시브 ETF와 종가예측모델로 펀드매니저가 적극적으로 운용하는 액티브 ETF로 구성된 <b>"하이브리드 ETF 상품"</b><br>
 tableau 고객향 ETF 소개 페이지에서 종목 분석과 수익율을 확인할 수 있는 대시보드 제공
 <br><br>
 
@@ -53,8 +53,12 @@ tableau 고객향 ETF 소개 페이지에서 종목 분석과 수익율을 확�
 
 <br>
 
-#### 2. 샤프지수를 고려한 패시브 ETF
-
+#### 2. 샤프지수를 적용한 최적의 패시브 ETF
+1. 평균-분산 최적화(MVO): 기대 수익률(mean)과 위험(variance)을 균형있게 고려하여 최적의 자산 배분을 결정
+    - 시장 변동성 반영되지 않아 하나의 주제로 비슷한 흐름을 보이는 테마주라는 기획 의도와 다른 성격이므로 제외
+2. 샤프지수(Sharpe Ratio): 위험(변동성) 대비 기대 수익률과 무위험 수익률 사이의 차(초과 수익률)
+    - 기대 수익률은 클러스터링의 x(수익율)과 같으며 무위험 수익률은 포트폴리오가 한국 주식으로만 구성되어 모두 동일하여 상수 처리
+    - 무작위로 1만개의 투자 비율을 만들어 샤프지수 계산하여 위험대비 수익률이 높은 최적의 비율 선택
 <br>
 
 #### 3. 트랜스포머 종가예측모델을 사용한 액티브 ETF
@@ -227,3 +231,31 @@ Bi-Directional LSTM과 Transformer 모델 비교
 |![](data/mdfile/dashboard4.png)|
 |![](data/mdfile/dashboard5.png)|
 
+<br>
+
+## 💀 스켈레톤
+- 개발 순서에 따른 팀원들의 모든 고민과 연습 과정이 기록된 디렉토리
+  - ch1_clustering, ch2_transformer, ch3_ta, ch4_etf, ch5_cal, ch6_RNN_LSTM
+- 메인 모델(transformer)의 시계열 데이터 처리, 모델 정의, 모델 학습 및 검증으로 분류
+- 학습된 모델과 시각화 자료 등 상위 디렉토리(data)에 저장
+```
+src/
+├── ch1_clustering/                       # Clustering 과정
+├── ch2_transformer/                      # Transformer 과정
+├── ch3_ta/                               # TA 지표 추가 과정
+├── ch4_etf/                              # ETF 종목 가공 과정
+├── ch5_cal/                              # ETF 수익율 백테스트 과정
+├── ch6_RNN_LSTM/                         # 성능비교를 위한 RNN LSTM 구현 과정
+│
+└── transformer/                          # 모델 구성 및 실행
+    ├── data_loader/                      # 시계열 데이터셋 처리
+    │   ├── single_axis_dataset.py
+    │   └── double_axis_dataset.py
+    ├── model/                            # 모델 정의
+    │   ├── CrossAttn.py
+    │   └── model_utils.py
+    ├── train/                            # 모델 학습 및 검증
+    │   └── train_stock.py
+    ├── config.py
+    └── main.py
+```
