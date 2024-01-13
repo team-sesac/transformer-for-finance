@@ -130,7 +130,7 @@ Bi-Directional LSTM과 Transformer 모델 비교
 <table border="" cellspacing="0" cellpadding="0" max-width="2000px">
     <tr width="100%">
         <td align="center"><a href= "https://github.com/yunariver">강윤하</a></td>
-        <td align="center"><a href= "https://github.com/KimJuyoung23">김주영</a></td>
+        <td align="center"><a href= "https://github.com/statezeropy">김주영</a></td>
         <td align="center"><a href= "https://github.com/seyeon-shijuan">박세연</a></td>
         <td align="center"><a href= "https://github.com/JangMinJung">장민정</a></td>
         <td align="center"><a href= "https://github.com/Minnie02">전민지</a></td>
